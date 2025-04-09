@@ -1,25 +1,33 @@
-import { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
-export default function Signup() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+// API response için tip tanımı (örnek olarak, gerekirse backend’e göre güncellenir)
+interface SignupResponse {
+  // Backend’in döndürdüğü bir şey yoksa boş bırakılabilir
+  message?: string;
+}
+
+const Signup: React.FC = () => {
+  const [username, setUsername] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/signup', {
+      await axios.post<SignupResponse>('http://localhost:8080/api/signup', {
         username,
         email,
         password,
       });
       navigate('/login'); // Kayıt başarılıysa giriş sayfasına yönlendir
     } catch (err) {
+      const axiosError = err as AxiosError;
       setError('Kayıt başarısız. Bilgileri kontrol edin.');
+      console.error(axiosError); // Hata detaylarını loglama (opsiyonel)
     }
   };
 
@@ -65,4 +73,6 @@ export default function Signup() {
       </p>
     </div>
   );
-}
+};
+
+export default Signup;

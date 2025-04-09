@@ -1,24 +1,31 @@
-import { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
-export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+// API response için tip tanımı (örnek olarak)
+interface LoginResponse {
+  token: string;
+}
+
+const Login: React.FC = () => {
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/api/login', {
+      const response = await axios.post<LoginResponse>('http://localhost:8080/api/login', {
         username,
         password,
       });
       localStorage.setItem('token', response.data.token); // Token saklama
       navigate('/customer/main'); // Müşteri ana sayfasına yönlendirme
     } catch (err) {
+      const axiosError = err as AxiosError;
       setError('Giriş başarısız. Kullanıcı adı veya şifre yanlış.');
+      console.error(axiosError); // Hata detaylarını loglama (opsiyonel)
     }
   };
 
@@ -57,4 +64,6 @@ export default function Login() {
       </p>
     </div>
   );
-}
+};
+
+export default Login;
