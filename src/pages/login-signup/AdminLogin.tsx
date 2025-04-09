@@ -1,24 +1,31 @@
-import { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
-export default function AdminLogin() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+// API response için tip tanımı
+interface AdminLoginResponse {
+  token: string; // Admin token’ı bekliyoruz
+}
+
+const AdminLogin: React.FC = () => {
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/api/admin/login', {
+      const response = await axios.post<AdminLoginResponse>('http://localhost:8080/api/admin/login', {
         username,
         password,
       });
       localStorage.setItem('adminToken', response.data.token); // Admin token saklama
       navigate('/admin/main'); // Admin ana sayfasına yönlendirme
     } catch (err) {
+      const axiosError = err as AxiosError;
       setError('Admin girişi başarısız. Bilgileri kontrol edin.');
+      console.error(axiosError); // Hata detaylarını loglama (opsiyonel)
     }
   };
 
@@ -54,4 +61,6 @@ export default function AdminLogin() {
       </p>
     </div>
   );
-}
+};
+
+export default AdminLogin;
