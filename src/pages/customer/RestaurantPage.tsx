@@ -2,10 +2,17 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-// Restoran veri tipi tanımı
 interface Restaurant {
-  id: number;
+  pk: number;
   name: string;
+  version: string;
+}
+
+interface ApiResponse {
+  code: number;
+  data: Restaurant[];
+  message: string;
+  status: number;
 }
 
 export default function RestaurantPage() {
@@ -15,8 +22,10 @@ export default function RestaurantPage() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await axios.get<Restaurant[]>('http://localhost:8080/api/restaurants');
-        setRestaurants(response.data);
+        const response = await axios.get<ApiResponse>('http://localhost:8080/api/restaurant/all');
+        console.log('Restoranlar:', response.data.data);
+        console.log(response.data.data); 
+        setRestaurants(response.data.data);
       } catch (err) {
         setError('Restoranlar yüklenemedi.');
       }
@@ -31,8 +40,10 @@ export default function RestaurantPage() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <ul>
         {restaurants.map((restaurant) => (
-          <li key={restaurant.id}>
-            <Link to="/customer/order">{restaurant.name}</Link>
+          <li key={restaurant.pk}>
+          <Link to={`/customer/restaurant/${restaurant.pk}`}>Go to {restaurant.name}</Link>
+          <h3>{restaurant.name}</h3>
+          <p>Version: {restaurant.version}</p>
           </li>
         ))}
       </ul>

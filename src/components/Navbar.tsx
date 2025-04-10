@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-// Route tanımı için tip
 interface NavItem {
   to: string;
   text: string;
+  subpages?: NavItem[];
 }
 
-// Kullanıcı tiplerine göre route’lar
 const routes: Record<string, NavItem[]> = {
   guest: [
     { to: '/login', text: 'Giriş Yap' },
@@ -15,13 +14,27 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin-login', text: 'Admin Giriş' },
   ],
   customer: [
-    { to: '/customer/main', text: 'Ana Sayfa' },
+    {
+      to: '/customer/main',
+      text: 'Ana Sayfa',
+      subpages: [
+        { to: '/customer/main/profile', text: 'Profil' },
+        { to: '/customer/main/settings', text: 'Ayarlar' },
+      ],
+    },
     { to: '/customer/restaurants', text: 'Restoranlar' },
     { to: '/customer/order', text: 'Sipariş Ver' },
     { to: '/customer/account-management', text: 'Hesabım' },
   ],
   restaurant: [
-    { to: '/restaurant/account-management', text: 'Hesap Yönetimi' },
+    {
+      to: '/restaurant/account-management',
+      text: 'Hesap Yönetimi',
+      subpages: [
+        { to: '/restaurant/account-management/info', text: 'Bilgi' },
+        { to: '/restaurant/account-management/security', text: 'Güvenlik' },
+      ],
+    },
     { to: '/restaurant/menu-management', text: 'Menü Yönetimi' },
     { to: '/restaurant/orders', text: 'Siparişler' },
     { to: '/restaurant/courier-management', text: 'Kurye Yönetimi' },
@@ -43,7 +56,6 @@ const routes: Record<string, NavItem[]> = {
   ],
 };
 
-// Ana menüler için sabit route’lar
 const mainRoutes: NavItem[] = [
   { to: '/login', text: 'Giriş/Kayıt' },
   { to: '/customer/main', text: 'Müşteri' },
@@ -54,26 +66,29 @@ const mainRoutes: NavItem[] = [
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const path = location.pathname.split('/')[1] || ''; // "customer", "restaurant", vs. ya da boş
-  const userType = path === '' || path === 'login' || path === 'signup' || path === 'admin-login' ? 'guest' : path;
+  const path = location.pathname.split('/')[1] || '';
+  const userType =
+    path === '' || path === 'login' || path === 'signup' || path === 'admin-login'
+      ? 'guest'
+      : path;
 
-  // Aktif link kontrolü
-  const isActive = (to: string): boolean => location.pathname === to;
+  const isActive = (to: string) => location.pathname === to;
+
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
     <nav style={{ padding: '1rem', background: '#f0f0f0' }}>
-      {/* Ana Menüler */}
-      <div style={{ marginBottom: '1rem' }}>
+      <div>
         {mainRoutes.map((item, index) => (
           <React.Fragment key={item.to}>
             {index > 0 && ' | '}
             <Link
               to={item.to}
               style={{
-                fontWeight: isActive(item.to) ? 'bold' : 'normal',
-                color: isActive(item.to) ? 'blue' : 'black',
                 textDecoration: 'none',
-                margin: '0 5px',
+                color: isActive(item.to) ? 'blue' : 'black',
+                fontWeight: isActive(item.to) ? 'bold' : 'normal',
+                marginRight: '10px',
               }}
             >
               {item.text}
@@ -82,23 +97,62 @@ const Navbar: React.FC = () => {
         ))}
       </div>
 
-      {/* Alt Menüler */}
-      <div>
-        {(routes[userType] || routes.guest).map((item, index) => (
-          <React.Fragment key={item.to}>
-            {index > 0 && ' | '}
+      <div style={{ display: 'flex', gap: '20px', marginTop: '1rem' }}>
+        {(routes[userType] || routes.guest).map((item) => (
+          <div
+            key={item.to}
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setHoveredItem(item.to)}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
             <Link
               to={item.to}
               style={{
-                fontWeight: isActive(item.to) ? 'bold' : 'normal',
-                color: isActive(item.to) ? 'blue' : 'black',
                 textDecoration: 'none',
-                margin: '0 5px',
+                color: isActive(item.to) ? 'blue' : 'black',
+                fontWeight: isActive(item.to) ? 'bold' : 'normal',
               }}
             >
               {item.text}
             </Link>
-          </React.Fragment>
+
+            {item.subpages && (
+              <div
+                style={{
+                  display: hoveredItem === item.to ? 'block' : 'none',
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  background: 'white',
+                  border: '1px solid #ccc',
+                  padding: '5px 0',
+                  minWidth: '160px',
+                  zIndex: 10,
+                }}
+              >
+                {item.subpages.map((sub) => (
+                  <Link
+                    key={sub.to}
+                    to={sub.to}
+                    style={{
+                      display: 'block',
+                      padding: '8px 16px',
+                      color: 'black',
+                      textDecoration: 'none',
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = '#f0f0f0')
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'white')
+                    }
+                  >
+                    {sub.text}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </nav>

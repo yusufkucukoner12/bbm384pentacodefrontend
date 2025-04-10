@@ -73,6 +73,13 @@ const App: React.FC = () => {
           <Route path="/admin/delivery-management" element={<DeliveryManagementPage />} />
           <Route path="/admin/restaurant-management" element={<RestaurantManagementPage />} />
           <Route path="/admin/review-management" element={<ReviewManagementPage />} />
+
+          {/* Restaurant page with pk and give the pk inside of the page*/}
+
+          
+
+          {/* Fallback route */}
+
         </Routes>
       </div>
     
