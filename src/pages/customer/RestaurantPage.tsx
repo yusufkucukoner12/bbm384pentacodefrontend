@@ -1,19 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-
-interface Restaurant {
-  pk: number;
-  name: string;
-  version: string;
-}
-
-interface ApiResponse {
-  code: number;
-  data: Restaurant[];
-  message: string;
-  status: number;
-}
+import { Restaurant } from '../../types/restaurant'; // Adjust the import path as necessary
+import { ApiResponse } from '../../types/apiresponse'; // Adjust the import path as necessary
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -22,7 +11,7 @@ export default function RestaurantPage() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await axios.get<ApiResponse>('http://localhost:8080/api/restaurant/all');
+        const response = await axios.get<ApiResponse<Restaurant[]>>('http://localhost:8080/api/restaurant/all');
         console.log('Restoranlar:', response.data.data);
         console.log(response.data.data); 
         setRestaurants(response.data.data);
@@ -41,7 +30,7 @@ export default function RestaurantPage() {
       <ul>
         {restaurants.map((restaurant) => (
           <li key={restaurant.pk}>
-          <Link to={`/customer/restaurant/${restaurant.pk}`}>Go to {restaurant.name}</Link>
+          <Link to={`/customer/restaurants/${restaurant.pk}`} state={restaurant}>Go to {restaurant.name}</Link>
           <h3>{restaurant.name}</h3>
           <p>Version: {restaurant.version}</p>
           </li>
