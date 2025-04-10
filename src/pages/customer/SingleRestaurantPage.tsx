@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import LoadRestaurant from '../../components/LoadRestaurant';
-import { Restaurant } from '../../types/restaurant';
+import { Restaurant } from '../../types/Restaurant';
 
 
 

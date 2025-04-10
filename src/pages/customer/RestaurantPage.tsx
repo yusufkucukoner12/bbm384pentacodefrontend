@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Restaurant } from '../../types/restaurant';
-import { ApiResponse } from '../../types/apiresponse';
+import { Restaurant } from '../../types/Restaurant';
+import { ApiResponse } from '../../types/ApiResponse';
 import GenericCard from '../../components/GenericCard'; // Adjust the path
 
 export default function RestaurantPage() {

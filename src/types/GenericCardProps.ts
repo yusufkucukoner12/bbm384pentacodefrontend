@@ -5,4 +5,5 @@ export interface GenericCardProps {
     footerContent?: string;
     to?: string;
     toData?: any;
+    children?: React.ReactNode; // Add children property
 }
