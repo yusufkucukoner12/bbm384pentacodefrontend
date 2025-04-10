@@ -77,19 +77,19 @@ const Navbar: React.FC = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
-    <nav style={{ padding: '1rem', background: '#f0f0f0' }}>
-      <div>
+    <nav className="bg-gray-100 p-4">
+      {/* Main Route Links */}
+      <div className="mb-4">
         {mainRoutes.map((item, index) => (
           <React.Fragment key={item.to}>
-            {index > 0 && ' | '}
+            {index > 0 && <span className="mx-2 text-gray-500">|</span>}
             <Link
               to={item.to}
-              style={{
-                textDecoration: 'none',
-                color: isActive(item.to) ? 'blue' : 'black',
-                fontWeight: isActive(item.to) ? 'bold' : 'normal',
-                marginRight: '10px',
-              }}
+              className={`mr-4 no-underline ${
+                isActive(item.to)
+                  ? 'text-blue-600 font-bold'
+                  : 'text-black font-normal'
+              }`}
             >
               {item.text}
             </Link>
@@ -97,55 +97,38 @@ const Navbar: React.FC = () => {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: '20px', marginTop: '1rem' }}>
+      {/* User-Specific Nav Links */}
+      <div className="flex gap-6">
         {(routes[userType] || routes.guest).map((item) => (
           <div
             key={item.to}
-            style={{ position: 'relative' }}
+            className="relative"
             onMouseEnter={() => setHoveredItem(item.to)}
             onMouseLeave={() => setHoveredItem(null)}
           >
             <Link
               to={item.to}
-              style={{
-                textDecoration: 'none',
-                color: isActive(item.to) ? 'blue' : 'black',
-                fontWeight: isActive(item.to) ? 'bold' : 'normal',
-              }}
+              className={`no-underline ${
+                isActive(item.to)
+                  ? 'text-blue-600 font-bold'
+                  : 'text-black font-normal'
+              }`}
             >
               {item.text}
             </Link>
 
+            {/* Submenu */}
             {item.subpages && (
               <div
-                style={{
-                  display: hoveredItem === item.to ? 'block' : 'none',
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  background: 'white',
-                  border: '1px solid #ccc',
-                  padding: '5px 0',
-                  minWidth: '160px',
-                  zIndex: 10,
-                }}
+                className={`absolute top-full left-0 min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${
+                  hoveredItem === item.to ? 'block' : 'hidden'
+                }`}
               >
                 {item.subpages.map((sub) => (
                   <Link
                     key={sub.to}
                     to={sub.to}
-                    style={{
-                      display: 'block',
-                      padding: '8px 16px',
-                      color: 'black',
-                      textDecoration: 'none',
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = '#f0f0f0')
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'white')
-                    }
+                    className="block px-4 py-2 text-black no-underline hover:bg-gray-100"
                   >
                     {sub.text}
                   </Link>

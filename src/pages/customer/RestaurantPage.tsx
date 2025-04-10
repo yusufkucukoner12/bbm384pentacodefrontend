@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Restaurant } from '../../types/restaurant'; // Adjust the import path as necessary
-import { ApiResponse } from '../../types/apiresponse'; // Adjust the import path as necessary
+import { Restaurant } from '../../types/restaurant';
+import { ApiResponse } from '../../types/apiresponse';
+import GenericCard from '../../components/GenericCard'; // Adjust the path
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -12,8 +13,6 @@ export default function RestaurantPage() {
     const fetchRestaurants = async () => {
       try {
         const response = await axios.get<ApiResponse<Restaurant[]>>('http://localhost:8080/api/restaurant/all');
-        console.log('Restoranlar:', response.data.data);
-        console.log(response.data.data); 
         setRestaurants(response.data.data);
       } catch (err) {
         setError('Restoranlar yüklenemedi.');
@@ -24,19 +23,29 @@ export default function RestaurantPage() {
   }, []);
 
   return (
-    <div>
-      <h2>Restoranlar</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Restoranlar</h2>
+      {error && <p className="text-red-500">{error}</p>}
+      <div className="flex flex-wrap gap-6">
         {restaurants.map((restaurant) => (
-          <li key={restaurant.pk}>
-          <Link to={`/customer/restaurants/${restaurant.pk}`} state={restaurant}>Go to {restaurant.name}</Link>
-          <h3>{restaurant.name}</h3>
-          <p>Version: {restaurant.version}</p>
-          </li>
+          <GenericCard
+            key={restaurant.pk}
+            title={restaurant.name}
+            description={`Versiyon: ${restaurant.version}`}
+            imageUrl="/restaurant-placeholder.jpg"
+            to={`/customer/restaurants/${restaurant.pk}`}
+            footerContent={`ID: ${restaurant.pk}`}
+            toData={restaurant}
+          />
         ))}
-      </ul>
-      <Link to="/customer/main">Geri Dön</Link>
+      </div>
+
+      <Link
+        to="/customer/main"
+        className="inline-block mt-6 text-blue-600 underline hover:text-blue-800"
+      >
+        Geri Dön
+      </Link>
     </div>
   );
 }
