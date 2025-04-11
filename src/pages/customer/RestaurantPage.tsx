@@ -32,7 +32,7 @@ export default function RestaurantPage() {
             key={restaurant.pk}
             title={restaurant.name}
             description={`Versiyon: ${restaurant.version}`}
-            imageUrl="/restaurant-placeholder.jpg"
+            imageUrl={restaurant.imageUrl}
             to={`/customer/restaurants/${restaurant.pk}`}
             footerContent={`ID: ${restaurant.pk}`}
             toData={restaurant}

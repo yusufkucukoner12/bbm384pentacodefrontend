@@ -5,7 +5,7 @@ import { GenericCardProps } from '../types/GenericCardProps'; // Adjust this pat
 export default function GenericCard({
   title,
   description,
-  imageUrl = '/placeholder.jpg',
+  imageUrl,
   footerContent,
   to,
   toData,
