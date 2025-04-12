@@ -11,6 +11,8 @@ import AdminLogin from './pages/login-signup/AdminLogin';
 import AccountManagement from './pages/customer/AccountManagement';
 import RestaurantPage from './pages/customer/RestaurantPage';
 import OrderPage from './pages/customer/OrderPage';
+import SingleRestaurantPage from './pages/customer/SingleRestaurantPage';
+import ReviewCart from './pages/customer/ReviewCart';
 
 // Restaurant
 import RestaurantAccountManagementPage from './pages/restaurant/RestaurantAccountManagementPage';
@@ -32,8 +34,6 @@ import DeliveryManagementPage from './pages/admin/DeliveryManagementPage';
 import MainAdminPage from './pages/admin/MainAdminPage';
 import RestaurantManagementPage from './pages/admin/RestaurantManagementPage';
 import ReviewManagementPage from './pages/admin/ReviewManagementPage';
-import SingleRestaurantPage from './pages/customer/SingleRestaurantPage';
-import ReviewCart from './pages/customer/ReviewCart';
 
 const App: React.FC = () => {
   return (
