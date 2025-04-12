@@ -17,7 +17,7 @@ import ReviewCart from './pages/customer/ReviewCart';
 // Restaurant
 import RestaurantAccountManagementPage from './pages/restaurant/RestaurantAccountManagementPage';
 import MenuManagementPage from './pages/restaurant/MenuManagementPage';
-import Orders from './pages/restaurant/Orders';
+import Orders from './pages/restaurant/RestaurantOrderManagementPage';
 import CourierManagementPage from './pages/restaurant/CourierManagementPage';
 
 // Courier

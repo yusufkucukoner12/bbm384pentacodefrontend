@@ -2,19 +2,21 @@
 import { Menu } from './Menu';
 import { Restaurant } from './Restaurant';
 import { CourierDTO } from './Courier';
-
+import { OrderItem } from './OrderItem';
 
 export interface OrderDTO {
     pk: number;
     name: string;
     restaurant: Restaurant;
     menus: Menu[];
+    orderItems: OrderItem[];
     courier: CourierDTO | null;
     status: OrderStatusEnum;
     courierAssignmentAccepted: boolean;
     version: number;
     totalPrice: number;
     searchString?: string; // Added for client-side search
+    createdAt: string;
   }
   
 export enum OrderStatusEnum {
