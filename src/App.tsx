@@ -30,7 +30,7 @@ import PastOrders from './pages/courier/PastOrders';
 // Admin
 import AdminCourierManagementPage from './pages/admin/AdminCourierManagementPage';
 import CustomerManagementPage from './pages/admin/CustomerManagementPage';
-import DeliveryManagementPage from './pages/admin/DeliveryManagementPage';
+import DeliveryManagementPage from './pages/admin/AdminOrderControlPage';
 import MainAdminPage from './pages/admin/MainAdminPage';
 import RestaurantManagementPage from './pages/admin/RestaurantManagementPage';
 import ReviewManagementPage from './pages/admin/ReviewManagementPage';
