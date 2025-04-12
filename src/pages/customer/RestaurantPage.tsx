@@ -36,15 +36,12 @@ export default function RestaurantPage() {
     <div className="min-h-screen bg-yellow-50">
       <NavbarForRestaurant />
 
-      {/* Alt kısım: yatay ikiye bölünmüş */}
       <div className="flex">
-        {/* %80 kısım: SearchAndSort + RestaurantList */}
         <div className="w-4/5 p-4">
           <SearchAndSort />
           <RestaurantList restaurants={restaurants} error={error} loading={loading} />
         </div>
 
-        {/* %20 kısım: FilterPanel */}
         <div className="w-1/5 p-4">
           <FilterPanel />
         </div>
