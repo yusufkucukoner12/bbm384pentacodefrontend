@@ -1,15 +1,14 @@
-// components/pages/admin/AdminOrderControlPage.tsx
+// components/pages/restaurant/RestaurantOrderManagementPage.tsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
-import { CourierDTO } from '../../types/Courier';
-import { NavbarForAdmin } from '../../components/admin/NavbarForAdmin';
+import { NavbarForRestaurant } from '../../components/restaurants/NavbarForRestaurant';
 import { OrderSearch } from '../../components/admin/OrderSearch';
 import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
-import { OrderList } from '../../components/admin/OrderList';
-import { AssignCourierModal } from '../../components/admin/AssignCourierModal';
+import { RestaurantOrderList } from '../../components/restaurants/RestaurantOrderList';
+import { UpdateOrderStatusModal } from '../../components/restaurants/UpdateOrderStatusModal';
 
-export default function AdminOrderControlPage() {
+export default function RestaurantOrderManagementPage() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,12 +17,14 @@ export default function AdminOrderControlPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  const [couriers, setCouriers] = useState<CourierDTO[]>([]);
+  
+  // Hard-coded restaurant ID (in a real app, this would come from authentication)
+  const restaurantId = 1;
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/order/all');
+        const response = await axios.get(`http://localhost:8080/api/restaurant/${restaurantId}/orders`);
         const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
           ...order,
           searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
@@ -37,7 +38,7 @@ export default function AdminOrderControlPage() {
       }
     };
     fetchOrders();
-  }, []);
+  }, [restaurantId]);
 
   useEffect(() => {
     const filtered = orders.filter(
@@ -48,21 +49,29 @@ export default function AdminOrderControlPage() {
     setFilteredOrders(filtered);
   }, [searchQuery, selectedStatuses, orders]);
 
-  const openCourierModal = async (orderId: number) => {
+  const openUpdateStatusModal = (orderId: number) => {
     setSelectedOrderId(orderId);
+    setIsModalOpen(true);
+  };
+
+  const updateOrderStatus = async (orderId: number, newStatus: string) => {
     try {
-      const response = await axios.get('http://localhost:8080/api/couriers/available');
-      setCouriers(response.data.data);
-      setIsModalOpen(true);
+      const response = await axios.post(
+        `http://localhost:8080/api/restaurant/${restaurantId}/orders/${orderId}/status`,
+        { status: newStatus }
+      );
+      const updatedOrder = response.data.data;
+      setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
+      setIsModalOpen(false);
     } catch (err) {
-      setError('Failed to load couriers.');
+      setError('Failed to update order status.');
     }
   };
 
   const assignCourier = async (orderId: number, courierId: number) => {
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/admin/orders/${orderId}/assign-courier/${courierId}`
+        `http://localhost:8080/api/restaurant/${restaurantId}/orders/${orderId}/assign-courier/${courierId}`
       );
       const updatedOrder = response.data.data;
       setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
@@ -72,60 +81,50 @@ export default function AdminOrderControlPage() {
     }
   };
 
-  const unassignCourier = async (orderId: number) => {
-    try {
-      const response = await axios.post(
-        `http://localhost:8080/api/admin/orders/${orderId}/unassign-courier`
-      );
-      const updatedOrder = response.data.data;
-      setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
-      setIsModalOpen(false);
-    } catch (err) {
-      setError('Failed to unassign courier.');
-    }
-  };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-yellow-50">
-      <NavbarForAdmin />
-      <div className="flex">
-        <div className="w-4/5 p-4">
-          <OrderSearch 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery} 
-          />
+      <NavbarForRestaurant />
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold text-orange-700 mb-4">Order Management</h1>
+        
+        <div className="flex">
+          <div className="w-4/5 p-4">
+            <OrderSearch 
+              searchQuery={searchQuery} 
+              setSearchQuery={setSearchQuery} 
+            />
+            
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+            
+            <RestaurantOrderList 
+              orders={filteredOrders} 
+              loading={loading} 
+              openUpdateStatusModal={openUpdateStatusModal} 
+            />
+          </div>
           
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          
-          <OrderList 
-            orders={filteredOrders} 
-            loading={loading} 
-            openCourierModal={openCourierModal} 
-          />
+          <div className="w-1/5 p-4">
+            <OrderStatusFilter 
+              selectedStatuses={selectedStatuses} 
+              setSelectedStatuses={setSelectedStatuses} 
+            />
+          </div>
         </div>
         
-        <div className="w-1/5 p-4">
-          <OrderStatusFilter 
-            selectedStatuses={selectedStatuses} 
-            setSelectedStatuses={setSelectedStatuses} 
+        {isModalOpen && selectedOrderId && (
+          <UpdateOrderStatusModal 
+            orderId={selectedOrderId}
+            orders={orders}
+            onUpdateStatus={updateOrderStatus}
+            onAssignCourier={assignCourier}
+            onClose={handleCloseModal}
           />
-        </div>
+        )}
       </div>
-      
-      {isModalOpen && selectedOrderId && (
-        <AssignCourierModal 
-          orderId={selectedOrderId}
-          orders={orders}
-          couriers={couriers}
-          onAssign={assignCourier}
-          onUnassign={unassignCourier}
-          onClose={handleCloseModal}
-        />
-      )}
     </div>
   );
 }
