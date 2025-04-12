@@ -15,14 +15,11 @@ const routes: Record<string, NavItem[]> = {
   ],
   customer: [
     {
-      to: '/customer/main',
-      text: 'Ana Sayfa',
-      subpages: [
-        { to: '/customer/main/profile', text: 'Profil' },
-        { to: '/customer/main/settings', text: 'Ayarlar' },
-      ],
-    },
-    { to: '/customer/restaurants', text: 'Restoranlar' },
+      to: '/customer/restaurants',
+      text: 'Restoranlar',
+      
+    }, 
+    { to: '/customer/review-card', text: 'Sepetim' },
     { to: '/customer/order', text: 'Sipariş Ver' },
     { to: '/customer/account-management', text: 'Hesabım' },
   ],
@@ -58,7 +55,7 @@ const routes: Record<string, NavItem[]> = {
 
 const mainRoutes: NavItem[] = [
   { to: '/login', text: 'Giriş/Kayıt' },
-  { to: '/customer/main', text: 'Müşteri' },
+  { to: '/customer/restaurants', text: 'Müşteri' },
   { to: '/restaurant/account-management', text: 'Restoran' },
   { to: '/courier/account-management', text: 'Kurye' },
   { to: '/admin/main', text: 'Admin' },

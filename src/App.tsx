@@ -9,7 +9,6 @@ import AdminLogin from './pages/login-signup/AdminLogin';
 
 // Customer
 import AccountManagement from './pages/customer/AccountManagement';
-import MainPage from './pages/customer/MainPage';
 import RestaurantPage from './pages/customer/RestaurantPage';
 import OrderPage from './pages/customer/OrderPage';
 
@@ -50,7 +49,6 @@ const App: React.FC = () => {
           <Route path="/" element={<Login />} />
 
           {/* Customer */}
-          <Route path="/customer/main" element={<MainPage />} />
           <Route path="/customer/restaurants" element={<RestaurantPage />} />
           <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
           <Route path="/customer/review-cart" element={<ReviewCart/>} />
@@ -79,10 +77,13 @@ const App: React.FC = () => {
           <Route path="/admin/review-management" element={<ReviewManagementPage />} />
 
           {/* Restaurant page with pk and give the pk inside of the page*/}
+          <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
+          {/* 404 Not Found */}
+
 
           
 
-          {/* Fallback route */}
+    
 
         </Routes>
       </div>

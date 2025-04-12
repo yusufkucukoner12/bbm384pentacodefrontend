@@ -4,6 +4,12 @@ import axios from 'axios';
 import { Restaurant } from '../../types/Restaurant';
 import { ApiResponse } from '../../types/ApiResponse';
 import GenericCard from '../../components/GenericCard'; // Adjust the path
+import { AddToCartButton } from '../../components/AddToCartButton';
+import { NavbarForRestaurant } from '../../components/restaurants/NavbarForRestaurant'; // Adjust the path
+import { SearchAndSort } from '../../components/restaurants/SearchAndSort'; // Adjust the path
+import { FilterPanel } from '../../components/restaurants/FilterPanel'; // Adjust the import path for Menu type
+import { RestaurantList } from '../../components/restaurants/RestaurantList'; // Adjust the import path for Menu type
+
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -23,29 +29,23 @@ export default function RestaurantPage() {
   }, []);
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Restoranlar</h2>
-      {error && <p className="text-red-500">{error}</p>}
-      <div className="flex flex-wrap gap-6">
-        {restaurants.map((restaurant) => (
-          <GenericCard
-            key={restaurant.pk}
-            title={restaurant.name}
-            description={`Versiyon: ${restaurant.version}`}
-            imageUrl={restaurant.imageUrl}
-            to={`/customer/restaurants/${restaurant.pk}`}
-            footerContent={`ID: ${restaurant.pk}`}
-            toData={restaurant}
-          />
-        ))}
+    <div className="min-h-screen bg-yellow-50">
+      <NavbarForRestaurant />
+  
+      {/* Alt kısım: yatay ikiye bölünmüş */}
+      <div className="flex">
+        {/* %80 kısım: SearchAndSort + RestaurantList */}
+        <div className="w-4/5 p-4">
+          <SearchAndSort />
+          <RestaurantList restaurants={restaurants} error={error} />
+        </div>
+  
+        {/* %20 kısım: FilterPanel */}
+        <div className="w-1/5 p-4">
+          <FilterPanel />
+        </div>
       </div>
-
-      <Link
-        to="/customer/main"
-        className="inline-block mt-6 text-blue-600 underline hover:text-blue-800"
-      >
-        Geri Dön
-      </Link>
     </div>
   );
+  
 }
