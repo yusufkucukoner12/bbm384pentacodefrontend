@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import './App.css';
 
 // Login/Signup
 import Login from './pages/login-signup/Login';
@@ -37,16 +38,17 @@ import ReviewManagementPage from './pages/admin/ReviewManagementPage';
 
 const App: React.FC = () => {
   return (
-    
-      <div>
-        <Navbar />
-        <Routes>
-          {/* Login/Signup */}
-        
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/" element={<Login />} />
+    <div className="App">
+  <div className="navbar-container">
+    <Navbar />
+  </div>
+      
+      <Routes>
+        {/* Login/Signup */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/" element={<Login />} />
 
           {/* Customer */}
           <Route path="/customer/restaurants" element={<RestaurantPage />} />
@@ -62,20 +64,20 @@ const App: React.FC = () => {
           <Route path="/restaurant/courier-management" element={<CourierManagementPage />} />
 
 
-          {/* Courier */}
-          <Route path="/courier/account-management" element={<CourierAccountManagementPage />} />
-          <Route path="/courier/assigned-orders" element={<AssignedOrders />} />
-          <Route path="/courier/idle-orders" element={<IdleOrders />} />
-          <Route path="/courier/order-details" element={<OrderDetails />} />
-          <Route path="/courier/past-orders" element={<PastOrders />} />
+        {/* Courier */}
+        <Route path="/courier/account-management" element={<CourierAccountManagementPage />} />
+        <Route path="/courier/assigned-orders" element={<AssignedOrders />} />
+        <Route path="/courier/idle-orders" element={<IdleOrders />} />
+        <Route path="/courier/order-details" element={<OrderDetails />} />
+        <Route path="/courier/past-orders" element={<PastOrders />} />
 
-          {/* Admin */}
-          <Route path="/admin/main" element={<MainAdminPage />} />
-          <Route path="/admin/courier-management" element={<AdminCourierManagementPage />} />
-          <Route path="/admin/customer-management" element={<CustomerManagementPage />} />
-          <Route path="/admin/delivery-management" element={<DeliveryManagementPage />} />
-          <Route path="/admin/restaurant-management" element={<RestaurantManagementPage />} />
-          <Route path="/admin/review-management" element={<ReviewManagementPage />} />
+        {/* Admin */}
+        <Route path="/admin/main" element={<MainAdminPage />} />
+        <Route path="/admin/courier-management" element={<AdminCourierManagementPage />} />
+        <Route path="/admin/customer-management" element={<CustomerManagementPage />} />
+        <Route path="/admin/delivery-management" element={<DeliveryManagementPage />} />
+        <Route path="/admin/restaurant-management" element={<RestaurantManagementPage />} />
+        <Route path="/admin/review-management" element={<ReviewManagementPage />} />
 
           {/* Restaurant page with pk and give the pk inside of the page*/}
           <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
