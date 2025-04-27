@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import logo from './public/hurricane.jpg'; // Import your logo
+import logo from './assets/hurricane.jpg'; // Import your logo
 
 interface NavItem {
   to: string;
@@ -75,8 +75,8 @@ const Navbar: React.FC = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
-    <nav className="bg-fdffe9 p-4 flex flex-col">
-  {/* Top bar: Logo + Hurricane + Main Routes */}
+<nav className="bg-fdffe9 p-4 flex flex-col" style={{ zIndex: 10, position: 'relative' }}>
+{/* Top bar: Logo + Hurricane + Main Routes */}
   <div className="flex items-center mb-6">
     {/* Logo */}
     <img src={logo} className="App-logo mr-4" alt="logo" />

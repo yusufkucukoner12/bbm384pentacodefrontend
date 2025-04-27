@@ -39,7 +39,7 @@ import ReviewManagementPage from './pages/admin/ReviewManagementPage';
 const App: React.FC = () => {
   return (
     <div className="App">
-  <div className="w=4/5 navbar-container">
+  <div className="w-4/5 navbar-container">
     <Navbar />
   </div>
       
@@ -50,12 +50,12 @@ const App: React.FC = () => {
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/" element={<Login />} />
 
-          {/* Customer */}
-          <Route path="/customer/restaurants" element={<RestaurantPage />} />
-          <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
-          <Route path="/customer/review-cart" element={<ReviewCart/>} />
-          <Route path="/customer/order" element={<OrderPage />} />
-          <Route path="/customer/account-management" element={<AccountManagement />} />
+        {/* Customer */}
+        <Route path="/customer/restaurants" element={<RestaurantPage />} />
+        <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
+        <Route path="/customer/review-cart" element={<ReviewCart/>} />
+        <Route path="/customer/order" element={<OrderPage />} />
+        <Route path="/customer/account-management" element={<AccountManagement />} />
 
           {/* Restaurant */}
           <Route path="/restaurant/account-management" element={<RestaurantAccountManagementPage />} />
@@ -79,14 +79,9 @@ const App: React.FC = () => {
         <Route path="/admin/restaurant-management" element={<RestaurantManagementPage />} />
         <Route path="/admin/review-management" element={<ReviewManagementPage />} />
 
-          {/* Restaurant page with pk and give the pk inside of the page*/}
-          <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
-          {/* 404 Not Found */}
-
-
-          
-
-    
+        {/* Restaurant page with pk and give the pk inside of the page*/}
+        <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
+        {/* 404 Not Found */}
 
         </Routes>
       </div>

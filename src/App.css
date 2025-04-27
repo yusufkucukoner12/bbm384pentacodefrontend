@@ -8,14 +8,16 @@
 .App-header {
   background-color: #fdffe9;
   display: flex;
-  flex-direction: row; /* column yerine row */
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between; /* Sol ve sağa yaymak için */
+  justify-content: space-between;
   font-size: 16px;
   color: white;
   padding: 2rem;
   margin-top: 1px;
   min-height: auto;
+  position: relative; /* Z-index için position gerekiyor */
+  z-index: 10; /* Navbar'ı görünür yapar */
 }
 
 .App-logo {
@@ -48,7 +50,15 @@
   text-decoration: none;
 }
 
-
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Background doesn't scroll weirdly */
+  padding: 2rem;
+}
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: none;
