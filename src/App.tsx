@@ -39,7 +39,7 @@ import ReviewManagementPage from './pages/admin/ReviewManagementPage';
 const App: React.FC = () => {
   return (
     <div className="App">
-  <div className="navbar-container">
+  <div className="w=4/5 navbar-container">
     <Navbar />
   </div>
       

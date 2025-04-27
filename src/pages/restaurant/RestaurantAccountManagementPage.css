@@ -1,0 +1,92 @@
+.restaurant-account-container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .sidebar {
+    width: 30%;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-right: 1px solid #dee2e6;
+  }
+  
+  .sidebar h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .sidebar li {
+    margin-bottom: 10px;
+  }
+  
+  .sidebar a {
+    text-decoration: none;
+    color: #333;
+    display: block;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+  
+  .sidebar a:hover {
+    background-color: #e9ecef;
+  }
+  
+  .main-content {
+    width: 70%;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .account-section, .password-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+  }
+  
+  .update-button, .logout-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .update-button:hover, .logout-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .logout-button {
+    background-color: #dc3545;
+    margin-top: 20px;
+  }
+  
+  .logout-button:hover {
+    background-color: #c82333;
+  }

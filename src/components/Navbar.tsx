@@ -107,8 +107,9 @@ const Navbar: React.FC = () => {
     </div>
   </div>
 
-  {/* Sidebar Menu */}
-  <div className="w-1/5 bg-orange-800 text-white flex flex-col p-4">
+  
+
+  {/*<div className="w-1/5 bg-orange-800 text-white flex flex-col p-4">
     {(routes[userType] || routes.guest).map((item) => (
       <div
         key={item.to}
@@ -127,7 +128,7 @@ const Navbar: React.FC = () => {
           {item.text}
         </Link>
 
-        {/* Submenu */}
+
         {item.subpages && (
           <div
             className={`absolute top-0 left-full min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${
@@ -147,7 +148,7 @@ const Navbar: React.FC = () => {
         )}
       </div>
     ))}
-  </div>
+  </div>*/}
 </nav>
 
   );
