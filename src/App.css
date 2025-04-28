@@ -1,38 +1,66 @@
 .App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+  min-height: 100vh;
+  background-color: #fdffe9;
+  padding: 2rem;
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: #fdffe9;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  justify-content: space-between;
+  font-size: 16px;
   color: white;
+  padding: 2rem;
+  margin-top: 1px;
+  min-height: auto;
+  position: relative; /* Z-index için position gerekiyor */
+  z-index: 10; /* Navbar'ı görünür yapar */
+}
+
+.App-logo {
+  width: 150px; /* Set width to 150px */
+  height: 150px; /* Set height to 150px */
+  pointer-events: none;
+  margin-bottom: 10px; /* Optional: Reduce spacing below the logo */
+}
+
+.hurricane-text {
+  font-size: 2rem; /* Smaller font size for the text */
+  font-weight: bold;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-left: 10px; /* Optional: Adjust left margin */
+}
+
+.hurricane-text .hu {
+  color: #fab82e; /* Color for "HU" */
+}
+
+.hurricane-text .rricane {
+  color: #bd350b; /* Color for "RRICANE" */
 }
 
 .App-link {
   color: #61dafb;
+  text-decoration: none;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Background doesn't scroll weirdly */
+  padding: 2rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: none;
   }
 }

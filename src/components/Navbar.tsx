@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import logo from './assets/hurricane.jpg'; // Import your logo
 
 interface NavItem {
   to: string;
@@ -74,68 +75,82 @@ const Navbar: React.FC = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
-    <nav className="bg-gray-100 p-4">
-      {/* Main Route Links */}
-      <div className="mb-4">
-        {mainRoutes.map((item, index) => (
-          <React.Fragment key={item.to}>
-            {index > 0 && <span className="mx-2 text-gray-500">|</span>}
-            <Link
-              to={item.to}
-              className={`mr-4 no-underline ${
-                isActive(item.to)
-                  ? 'text-blue-600 font-bold'
-                  : 'text-black font-normal'
-              }`}
-            >
-              {item.text}
-            </Link>
-          </React.Fragment>
-        ))}
-      </div>
+<nav className="bg-fdffe9 p-4 flex flex-col" style={{ zIndex: 10, position: 'relative' }}>
+{/* Top bar: Logo + Hurricane + Main Routes */}
+  <div className="flex items-center mb-6">
+    {/* Logo */}
+    <img src={logo} className="App-logo mr-4" alt="logo" />
 
-      {/* User-Specific Nav Links */}
-      <div className="flex gap-6">
-        {(routes[userType] || routes.guest).map((item) => (
-          <div
-            key={item.to}
-            className="relative"
-            onMouseEnter={() => setHoveredItem(item.to)}
-            onMouseLeave={() => setHoveredItem(null)}
+    {/* Hurricane Text */}
+    <div className="hurricane-text text-xl font-semibold mr-6 flex">
+      <span className="hu">HU</span>
+      <span className="rricane">RRICANE</span>
+    </div>
+
+    {/* Main Route Links */}
+    <div className="flex items-center gap-4">
+      {mainRoutes.map((item, index) => (
+        <React.Fragment key={item.to}>
+          {index > 0 && <span className="text-gray-500">|</span>}
+          <Link
+            to={item.to}
+            className={`no-underline ${
+              isActive(item.to)
+                ? 'text-black font-bold'
+                : 'text-black font-normal'
+            }`}
           >
-            <Link
-              to={item.to}
-              className={`no-underline ${
-                isActive(item.to)
-                  ? 'text-blue-600 font-bold'
-                  : 'text-black font-normal'
-              }`}
-            >
-              {item.text}
-            </Link>
+            {item.text}
+          </Link>
+        </React.Fragment>
+      ))}
+    </div>
+  </div>
 
-            {/* Submenu */}
-            {item.subpages && (
-              <div
-                className={`absolute top-full left-0 min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${
-                  hoveredItem === item.to ? 'block' : 'hidden'
-                }`}
+  
+
+  {/*<div className="w-1/5 bg-orange-800 text-white flex flex-col p-4">
+    {(routes[userType] || routes.guest).map((item) => (
+      <div
+        key={item.to}
+        className="relative mb-2"
+        onMouseEnter={() => setHoveredItem(item.to)}
+        onMouseLeave={() => setHoveredItem(null)}
+      >
+        <Link
+          to={item.to}
+          className={`block py-2 px-4 bg-orange-600 rounded text-left no-underline ${
+            isActive(item.to)
+              ? 'text-white font-bold hover:bg-orange-700'
+              : 'text-white font-normal hover:bg-orange-700'
+          }`}
+        >
+          {item.text}
+        </Link>
+
+
+        {item.subpages && (
+          <div
+            className={`absolute top-0 left-full min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${
+              hoveredItem === item.to ? 'block' : 'hidden'
+            }`}
+          >
+            {item.subpages.map((sub) => (
+              <Link
+                key={sub.to}
+                to={sub.to}
+                className="block px-4 py-2 text-black no-underline hover:bg-gray-100"
               >
-                {item.subpages.map((sub) => (
-                  <Link
-                    key={sub.to}
-                    to={sub.to}
-                    className="block px-4 py-2 text-black no-underline hover:bg-gray-100"
-                  >
-                    {sub.text}
-                  </Link>
-                ))}
-              </div>
-            )}
+                {sub.text}
+              </Link>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    </nav>
+    ))}
+  </div>*/}
+</nav>
+
   );
 };
 
