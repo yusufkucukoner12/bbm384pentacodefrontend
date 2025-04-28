@@ -74,7 +74,7 @@ const Navbar: React.FC = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
-    <nav className="bg-gray-100 p-4">
+    <nav className="bg-gray-100 p-4 z-10 fixed top-0 left-0 w-full">
       {/* Main Route Links */}
       <div className="mb-4">
         {mainRoutes.map((item, index) => (
@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* User-Specific Nav Links */}
-      <div className="flex gap-6">
+      <div className="flex gap-6 z-10">
         {(routes[userType] || routes.guest).map((item) => (
           <div
             key={item.to}
