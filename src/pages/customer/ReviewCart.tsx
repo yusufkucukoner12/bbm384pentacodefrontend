@@ -28,13 +28,20 @@ export default function ReviewCart() {
 
   const handleFinishOrder = async () => {
     try {
+      // add header bearer token
       await axios.post('http://localhost:3000/api/order/finish-order', {
         restaurantId: restaurant.pk,
         items: groupedItems.map(({ item, count }) => ({
           menuId: item.pk,
           quantity: count,
         })),
-      });
+      },{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+        },
+        });
+
       alert('Order sent!');
       window.location.href = '/customer/restaurants';
     } catch (err) {

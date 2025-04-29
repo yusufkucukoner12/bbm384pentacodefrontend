@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import Background from '../../Background';
@@ -10,12 +10,13 @@ interface SignupResponse {
 const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
-    phoneNumber: '',
+    name: '',
     email: '',
     password: '',
     againPassword: '',
   });
   const [error, setError] = useState<string>('');
+  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,32 +26,82 @@ const Signup: React.FC = () => {
     ? 'courier'
     : 'customer';
 
-  const placeholders: Record<string, { username: string; phoneNumber: string; email: string; password: string; againPassword: string }> = {
-    customer: { username: 'Username', phoneNumber: 'Phone Number', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
-    restaurant: { username: 'Restaurant Name', phoneNumber: 'Phone Number', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
-    courier: { username: 'Name Surname', phoneNumber: 'Phone Number', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
+  const roleToAuthority: Record<string, string> = {
+    customer: 'ROLE_CUSTOMER',
+    restaurant: 'ROLE_RESTAURANT',
+    courier: 'ROLE_COURIER',
   };
+
+  const placeholders: Record<string, { username: string; name: string; email: string; password: string; againPassword: string }> = {
+    customer: { username: 'Username', name: 'Your Full Name', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
+    restaurant: { username: 'Restaurant Username', name: 'Restaurant Name', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
+    courier: { username: 'Courier Username', name: 'Name Surname', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
+  };
+
+  useEffect(() => {
+    const validateToken = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsValidToken(false);
+        return;
+      }
+
+      try {
+        const res = await axios.get('/api/auth/validate-token', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        setIsValidToken(res.status === 200);
+      } catch (error) {
+        console.error('Token validation error:', error);
+        setIsValidToken(false);
+      }
+    };
+
+    validateToken();
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.againPassword) {
       setError('Passwords do not match.');
       return;
     }
+
+    if (isValidToken === true) {
+      navigate('/main');
+      return;
+    }
+
     try {
-      await axios.post<SignupResponse>('http://localhost:8080/api/signup', {
+      const response = await axios.post<SignupResponse>('http://localhost:8080/api/auth/register', {
         username: formData.username,
-        phoneNumber: formData.phoneNumber,
+        name: formData.name,
         email: formData.email,
         password: formData.password,
+        authorities: [roleToAuthority[role]],
       });
-      navigate('/login');
+      console.log('Response:', response.data);
+      if (response.data.message === 'Success') {
+        navigate('/login');
+      } else {
+        setError(response.data.message || 'Signup failed.');
+      }
     } catch (err) {
       const axiosError = err as AxiosError;
-      setError('Signup failed. Please check your information.');
       console.error(axiosError);
+      setError('Signup failed. Please check your information.');
     }
   };
+
+  if (isValidToken === null) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
@@ -74,9 +125,9 @@ const Signup: React.FC = () => {
           />
           <input
             type="text"
-            value={formData.phoneNumber}
-            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-            placeholder={placeholders[role].phoneNumber}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder={placeholders[role].name}
             required
             className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
           />
@@ -112,24 +163,14 @@ const Signup: React.FC = () => {
           </button>
         </form>
 
-        {/* Beautiful Switching Buttons */}
+        {/* Role Switching Buttons */}
         <div className="mt-6 flex flex-col items-center gap-2">
           {role === 'customer' && (
             <>
               <p className="text-gray-500 text-sm">Are you a Restaurant or Courier?</p>
               <div className="flex gap-4">
-                <Link
-                  to="/restaurant/signup"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm"
-                >
-                  Restaurant Sign Up
-                </Link>
-                <Link
-                  to="/courier/signup"
-                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm"
-                >
-                  Courier Sign Up
-                </Link>
+                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm">Restaurant Sign Up</Link>
+                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm">Courier Sign Up</Link>
               </div>
             </>
           )}
@@ -137,18 +178,8 @@ const Signup: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Customer or Courier?</p>
               <div className="flex gap-4">
-                <Link
-                  to="/signup"
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm"
-                >
-                  Customer Sign Up
-                </Link>
-                <Link
-                  to="/courier/signup"
-                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm"
-                >
-                  Courier Sign Up
-                </Link>
+                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm">Customer Sign Up</Link>
+                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm">Courier Sign Up</Link>
               </div>
             </>
           )}
@@ -156,18 +187,8 @@ const Signup: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Customer or Restaurant?</p>
               <div className="flex gap-4">
-                <Link
-                  to="/signup"
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm"
-                >
-                  Customer Sign Up
-                </Link>
-                <Link
-                  to="/restaurant/signup"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm"
-                >
-                  Restaurant Sign Up
-                </Link>
+                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm">Customer Sign Up</Link>
+                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm">Restaurant Sign Up</Link>
               </div>
             </>
           )}
@@ -175,9 +196,7 @@ const Signup: React.FC = () => {
 
         <p className="mt-4 text-sm text-center">
           Already have an account?
-          <Link to="/login" className="text-red-500 hover:underline ml-1">
-            Log In
-          </Link>
+          <Link to="/login" className="text-red-500 hover:underline ml-1">Log In</Link>
         </p>
       </div>
     </div>

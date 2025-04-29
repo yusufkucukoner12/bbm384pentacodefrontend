@@ -1,23 +1,25 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import Background from '../../Background';
 
-interface LoginResponse {
+interface User {
   token: string;
+  role: string;
+}
+
+interface LoginResponse {
+  user: User;
 }
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
-
-  /*const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');*/
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
   const location = useLocation();
 
-    // Determine user role based on route, default is customer
-    const role = location.pathname.includes('restaurant')
+  // Determine role from path
+  const role = location.pathname.includes('restaurant')
     ? 'restaurant'
     : location.pathname.includes('courier')
     ? 'courier'
@@ -29,18 +31,65 @@ const Login: React.FC = () => {
     courier: { username: 'Courier ID', password: 'Password' },
   };
 
+  useEffect(() => {
+    const validateAndRedirect = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // Send token validation request
+          const response = await axios.get('/api/auth/validate-token', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.status === 200) {
+            // Token is valid, redirect to the appropriate dashboard based on role
+            const userRole = localStorage.getItem('role');
+            if (userRole === 'restaurant') {
+              navigate('/restaurant/main');
+            } else if (userRole === 'courier') {
+              navigate('/courier/main');
+            } else {
+              navigate('/customer/main');
+            }
+          }
+        } catch (err) {
+          const axiosError = err as AxiosError;
+          if (axiosError.response?.status === 403) {
+            // Token is invalid or expired, show login page
+            console.log('Token is invalid, redirecting to login');
+          } else {
+            console.error('Unexpected error:', axiosError);
+          }
+        }
+      }
+    };
+
+    validateAndRedirect();
+  }, [navigate]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post<LoginResponse>('http://localhost:8080/api/login', {
+      const response = await axios.post<LoginResponse>('http://localhost:8080/api/auth/login', {
         username: formData.username,
         password: formData.password,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      localStorage.setItem('token', response.data.token);
 
-      if (role === 'restaurant') {
+      const token = response.data.user.token;
+      const userRole = response.data.user.role;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', userRole);
+
+      if (userRole === 'restaurant') {
         navigate('/restaurant/main');
-      } else if (role === 'courier') {
+      } else if (userRole === 'courier') {
         navigate('/courier/main');
       } else {
         navigate('/customer/main');
@@ -53,7 +102,7 @@ const Login: React.FC = () => {
     }
   };
 
-   return (
+  return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       <Background />
       <div className="relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -61,7 +110,7 @@ const Login: React.FC = () => {
           {role.charAt(0).toUpperCase() + role.slice(1)} Log In
         </h1>
         <p className="text-center mb-6">
-          {role === 'customer' ? 'HUrry up, continue to earn discounts!' : 'Access your dashboard now!'}
+          {role === 'customer' ? 'Hurry up, continue to earn discounts!' : 'Access your dashboard now!'}
         </p>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -93,16 +142,10 @@ const Login: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Restaurant or Courier?</p>
               <div className="flex gap-4">
-                <Link
-                  to="/restaurant/login"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm"
-                >
+                <Link to="/restaurant/login" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm">
                   Restaurant Login
                 </Link>
-                <Link
-                  to="/courier/login"
-                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm"
-                >
+                <Link to="/courier/login" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm">
                   Courier Login
                 </Link>
               </div>
@@ -112,16 +155,10 @@ const Login: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Customer or Courier?</p>
               <div className="flex gap-4">
-                <Link
-                  to="/login"
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm"
-                >
+                <Link to="/login" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm">
                   Customer Login
                 </Link>
-                <Link
-                  to="/courier/login"
-                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm"
-                >
+                <Link to="/courier/login" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm">
                   Courier Login
                 </Link>
               </div>
@@ -131,16 +168,10 @@ const Login: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Customer or Restaurant?</p>
               <div className="flex gap-4">
-                <Link
-                  to="/login"
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm"
-                >
+                <Link to="/login" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm">
                   Customer Login
                 </Link>
-                <Link
-                  to="/restaurant/login"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm"
-                >
+                <Link to="/restaurant/login" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm">
                   Restaurant Login
                 </Link>
               </div>
@@ -154,7 +185,7 @@ const Login: React.FC = () => {
           </Link>
         </p>
         <p className="mt-4 text-sm text-center">
-          Forget your password?
+          Forgot your password?
           <Link to="/resetpassword" className="text-red-500 hover:underline ml-1">
             Reset Password
           </Link>

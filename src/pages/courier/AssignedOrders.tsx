@@ -11,9 +11,10 @@ export default function AcceptedOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/order/courier/${courierId}`,
-          { params: { accept: true } }
-        );
+        const response = await axios.get(`http://localhost:8080/api/order/courier/orders`, {
+          params: { accept: true},
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
         const acceptedOrders = response.data.data.filter((order: OrderDTO) =>
           order.status === OrderStatusEnum.IN_TRANSIT
         );

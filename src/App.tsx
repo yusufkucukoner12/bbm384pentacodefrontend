@@ -58,7 +58,7 @@ const App: React.FC = () => {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/" element={<Login />} />
 
-
+    
           {/* Customer */}
           <Route path="/customer/restaurants" element={<RestaurantPage />} />
           <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
@@ -87,10 +87,6 @@ const App: React.FC = () => {
           <Route path="/admin/delivery-management" element={<DeliveryManagementPage />} />
           <Route path="/admin/restaurant-management" element={<RestaurantManagementPage />} />
           <Route path="/admin/review-management" element={<ReviewManagementPage />} />
-
-          {/* Restaurant page with pk and give the pk inside of the page*/}
-          <Route path="/customer/restaurants/:pk" element={<SingleRestaurantPage />} />
-          {/* 404 Not Found */}
 
 
           
