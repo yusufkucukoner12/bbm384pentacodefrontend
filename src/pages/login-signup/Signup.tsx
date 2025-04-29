@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import Background from '../../Background';
@@ -7,36 +7,66 @@ interface SignupResponse {
   message?: string;
 }
 
+type Role = 'customer' | 'restaurant' | 'courier';
+
+type RoleFields = Record<Role, { name: string; placeholder: string; type: string }[]>;
+
 const Signup: React.FC = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    name: '',
-    email: '',
-    password: '',
-    againPassword: '',
-  });
-  const [error, setError] = useState<string>('');
-  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const role = location.pathname.includes('restaurant')
+  const role: Role = location.pathname.includes('restaurant')
     ? 'restaurant'
     : location.pathname.includes('courier')
     ? 'courier'
     : 'customer';
 
-  const roleToAuthority: Record<string, string> = {
+  const roleToAuthority: Record<Role, string> = {
     customer: 'ROLE_CUSTOMER',
     restaurant: 'ROLE_RESTAURANT',
     courier: 'ROLE_COURIER',
   };
 
-  const placeholders: Record<string, { username: string; name: string; email: string; password: string; againPassword: string }> = {
-    customer: { username: 'Username', name: 'Your Full Name', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
-    restaurant: { username: 'Restaurant Username', name: 'Restaurant Name', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
-    courier: { username: 'Courier Username', name: 'Name Surname', email: 'Email', password: 'Password', againPassword: 'Enter Password Again' },
+  const roleFields: RoleFields = {
+    customer: [
+      { name: 'username', placeholder: 'Username', type: 'text' },
+      { name: 'name', placeholder: 'Your Full Name', type: 'text' },
+      { name: 'email', placeholder: 'Email', type: 'email' },
+      { name: 'password', placeholder: 'Password', type: 'password' },
+      { name: 'againPassword', placeholder: 'Enter Password Again', type: 'password' },
+      { name: 'customerPhoneNumber', placeholder: 'Phone Number', type: 'text' },
+      { name: 'customerAddress', placeholder: 'Address', type: 'text' }
+    ],
+    restaurant: [
+      { name: 'username', placeholder: 'Restaurant Username', type: 'text' },
+      { name: 'name', placeholder: 'Restaurant Name', type: 'text' },
+      { name: 'email', placeholder: 'Email', type: 'email' },
+      { name: 'password', placeholder: 'Password', type: 'password' },
+      { name: 'againPassword', placeholder: 'Enter Password Again', type: 'password' },
+      { name: 'restaurantAddress', placeholder: 'Restaurant Address', type: 'text' },
+      { name: 'restaurantPhoneNumber', placeholder: 'Restaurant Phone Number', type: 'text' },
+      { name: 'restaurantDescription', placeholder: 'Restaurant Description', type: 'text' },
+    ],
+    courier: [
+      { name: 'username', placeholder: 'Courier Username', type: 'text' },
+      { name: 'name', placeholder: 'Name Surname', type: 'text' },
+      { name: 'email', placeholder: 'Email', type: 'email' },
+      { name: 'password', placeholder: 'Password', type: 'password' },
+      { name: 'againPassword', placeholder: 'Enter Password Again', type: 'password' },
+      { name: 'isAvailable', placeholder: 'Is Available', type: 'checkbox' },
+      { name: 'courierPhoneNumber', placeholder: 'Courier Phone Number', type: 'text' },
+      { name: 'isOnline', placeholder: 'Is Online', type: 'checkbox' },
+    ],
   };
+
+  const initialFormData = roleFields[role].reduce((acc, field) => {
+    acc[field.name] = field.type === 'checkbox' ? false : '';
+    return acc;
+  }, {} as Record<string, string | boolean>);
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [error, setError] = useState<string>('');
+  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
 
   useEffect(() => {
     const validateToken = async () => {
@@ -49,7 +79,7 @@ const Signup: React.FC = () => {
       try {
         const res = await axios.get('/api/auth/validate-token', {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -63,6 +93,14 @@ const Signup: React.FC = () => {
 
     validateToken();
   }, []);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, type, value, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,14 +117,23 @@ const Signup: React.FC = () => {
     }
 
     try {
-      const response = await axios.post<SignupResponse>('http://localhost:8080/api/auth/register', {
-        username: formData.username,
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+      const payload: Record<string, string | boolean | string[]> = {
         authorities: [roleToAuthority[role]],
+      };
+
+      roleFields[role].forEach(({ name }) => {
+        if (name !== 'againPassword') {
+          payload[name] = formData[name];
+        }
       });
-      console.log('Response:', response.data);
+
+      console.log('Payload:', payload);
+
+      const response = await axios.post<SignupResponse>(
+        'http://localhost:8080/api/auth/register',
+        payload
+      );
+
       if (response.data.message === 'Success') {
         navigate('/login');
       } else {
@@ -114,47 +161,33 @@ const Signup: React.FC = () => {
           {role === 'customer' ? 'Join us and enjoy the discounts!' : 'Create your account now!'}
         </p>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            placeholder={placeholders[role].username}
-            required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
-          />
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder={placeholders[role].name}
-            required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
-          />
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder={placeholders[role].email}
-            required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
-          />
-          <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            placeholder={placeholders[role].password}
-            required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
-          />
-          <input
-            type="password"
-            value={formData.againPassword}
-            onChange={(e) => setFormData({ ...formData, againPassword: e.target.value })}
-            placeholder={placeholders[role].againPassword}
-            required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
-          />
+          {roleFields[role].map((field) =>
+            field.type === 'checkbox' ? (
+              <label key={field.name} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={Boolean(formData[field.name])}
+                  onChange={handleChange}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm text-gray-700">{field.placeholder}</span>
+              </label>
+            ) : (
+              <input
+                key={field.name}
+                type={field.type}
+                name={field.name}
+                value={formData[field.name] as string}
+                onChange={handleChange}
+                placeholder={field.placeholder}
+                required
+                className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
+              />
+            )
+          )}
           <button
             type="submit"
             className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded transition duration-200"
@@ -163,14 +196,13 @@ const Signup: React.FC = () => {
           </button>
         </form>
 
-        {/* Role Switching Buttons */}
         <div className="mt-6 flex flex-col items-center gap-2">
           {role === 'customer' && (
             <>
               <p className="text-gray-500 text-sm">Are you a Restaurant or Courier?</p>
               <div className="flex gap-4">
-                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm">Restaurant Sign Up</Link>
-                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm">Courier Sign Up</Link>
+                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
+                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
               </div>
             </>
           )}
@@ -178,8 +210,8 @@ const Signup: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Customer or Courier?</p>
               <div className="flex gap-4">
-                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm">Customer Sign Up</Link>
-                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition duration-200 text-sm">Courier Sign Up</Link>
+                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
+                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
               </div>
             </>
           )}
@@ -187,8 +219,8 @@ const Signup: React.FC = () => {
             <>
               <p className="text-gray-500 text-sm">Are you a Customer or Restaurant?</p>
               <div className="flex gap-4">
-                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-200 text-sm">Customer Sign Up</Link>
-                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-200 text-sm">Restaurant Sign Up</Link>
+                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
+                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
               </div>
             </>
           )}

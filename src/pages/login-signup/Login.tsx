@@ -31,6 +31,12 @@ const Login: React.FC = () => {
     courier: { username: 'Courier ID', password: 'Password' },
   };
 
+  const roleToAuthority: Record<string, string> = {
+    customer: 'ROLE_CUSTOMER',
+    restaurant: 'ROLE_RESTAURANT',
+    courier: 'ROLE_COURIER',
+  };
+
   useEffect(() => {
     const validateAndRedirect = async () => {
       const token = localStorage.getItem('token');
@@ -75,6 +81,7 @@ const Login: React.FC = () => {
       const response = await axios.post<LoginResponse>('http://localhost:8080/api/auth/login', {
         username: formData.username,
         password: formData.password,
+        authorities: [roleToAuthority[role]],
       }, {
         headers: {
           'Content-Type': 'application/json',

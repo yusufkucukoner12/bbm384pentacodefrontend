@@ -100,16 +100,9 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     const token = localStorage.getItem('token');
-    
-    if (!token) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      setIsLoggedIn(false);
-      return;
-    }
   
     try {
-      await axios.post('/api/auth/logout', {}, {
+      const resp = await axios.post('/api/auth/logout', {}, {
         headers: {
           'Authorization': `Bearer ${token}`, // Send the token as a Bearer token
           'Content-Type': 'application/json',
@@ -119,6 +112,10 @@ const Navbar: React.FC = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
       setIsLoggedIn(false);
+
+      if (resp.status === 200) {
+        window.location.href = '/login';
+      }
     } catch (error) {
       console.error('Logout error:', error);
       localStorage.removeItem('token');
