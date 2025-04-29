@@ -24,7 +24,9 @@ export default function RestaurantOrderManagementPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/restaurant/${restaurantId}/orders`);
+        const response = await axios.get(`http://localhost:8080/api/restaurant/get/orders`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
         const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
           ...order,
           searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
@@ -57,8 +59,9 @@ export default function RestaurantOrderManagementPage() {
   const updateOrderStatus = async (orderId: number, newStatus: string) => {
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/restaurant/${restaurantId}/orders/${orderId}/status`,
-        { status: newStatus }
+        `http://localhost:8080/api/restaurant/orders/${orderId}/status`,
+        { status: newStatus},
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },}
       );
       const updatedOrder = response.data.data;
       setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
@@ -71,7 +74,9 @@ export default function RestaurantOrderManagementPage() {
   const assignCourier = async (orderId: number, courierId: number) => {
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/restaurant/${restaurantId}/orders/${orderId}/assign-courier/${courierId}`
+        `http://localhost:8080/api/restaurant/orders/${orderId}/assign-courier/${courierId}`,
+        {},
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },}
       );
       const updatedOrder = response.data.data;
       setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
