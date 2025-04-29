@@ -31,7 +31,7 @@ export default function IdleOrders() {
       const response = await axios.post(
         `http://localhost:8080/api/couriers/${courierId}/orders/${orderId}/respond`,
         null,
-        { params: { accept } }
+        { params: { accept }, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
 
       setOrders((prevOrders) =>

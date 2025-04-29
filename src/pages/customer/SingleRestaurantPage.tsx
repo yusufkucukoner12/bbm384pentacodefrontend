@@ -18,7 +18,11 @@ export default function SingleRestaurantPage() {
   useEffect(() => {
     if (!restaurant && pk) {
       axios
-        .get(`/api/restaurant/${pk}`)
+        .get(`/api/restaurant/${pk}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
         .then((res) => setRestaurant(res.data))
         .catch((err) => console.error(err));
     }

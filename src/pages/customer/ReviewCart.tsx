@@ -28,7 +28,6 @@ export default function ReviewCart() {
 
   const handleFinishOrder = async () => {
     try {
-      // add header bearer token
       await axios.post('http://localhost:3000/api/order/finish-order', {
         restaurantId: restaurant.pk,
         items: groupedItems.map(({ item, count }) => ({
