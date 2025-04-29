@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 interface NavItem {
   to: string;
@@ -14,11 +15,7 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin-login', text: 'Admin Giriş' },
   ],
   customer: [
-    {
-      to: '/customer/restaurants',
-      text: 'Restoranlar',
-      
-    }, 
+    { to: '/customer/restaurants', text: 'Restoranlar' },
     { to: '/customer/review-cart', text: 'Sepetim' },
     { to: '/customer/order', text: 'Sipariş Ver' },
     { to: '/customer/account-management', text: 'Hesabım' },
@@ -72,30 +69,93 @@ const Navbar: React.FC = () => {
   const isActive = (to: string) => location.pathname === to;
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const validateToken = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsLoggedIn(false);
+        return;
+      }
+  
+      try {
+        const res = await axios.get('/api/auth/validate-token', {
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        setIsLoggedIn(res.status === 200);
+      } catch (error) {
+        console.error('Token validation error:', error);
+        setIsLoggedIn(false);
+      }
+    };
+  
+    validateToken();
+  }, []);
+  
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      setIsLoggedIn(false);
+      return;
+    }
+  
+    try {
+      await axios.post('/api/auth/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Send the token as a Bearer token
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      setIsLoggedIn(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      setIsLoggedIn(false);
+    }
+  };
+  
 
   return (
-    <nav className="bg-gray-100 p-4">
-      {/* Main Route Links */}
-      <div className="mb-4">
-        {mainRoutes.map((item, index) => (
-          <React.Fragment key={item.to}>
-            {index > 0 && <span className="mx-2 text-gray-500">|</span>}
-            <Link
-              to={item.to}
-              className={`mr-4 no-underline ${
-                isActive(item.to)
-                  ? 'text-blue-600 font-bold'
-                  : 'text-black font-normal'
-              }`}
-            >
-              {item.text}
-            </Link>
-          </React.Fragment>
-        ))}
-      </div>
+    <nav className="bg-gray-100 p-4 z-10 fixed top-0 left-0 w-full shadow-md">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          {mainRoutes.map((item, index) => (
+            <React.Fragment key={item.to}>
+              {index > 0 && <span className="mx-2 text-gray-500">|</span>}
+              <Link
+                to={item.to}
+                className={`mr-4 no-underline ${isActive(item.to) ? 'text-blue-600 font-bold' : 'text-black font-normal'}`}
+              >
+                {item.text}
+              </Link>
+            </React.Fragment>
+          ))}
+        </div>
 
-      {/* User-Specific Nav Links */}
-      <div className="flex gap-6">
+        {isLoggedIn && (
+          <button 
+            onClick={handleLogout} 
+            className="text-red-600 font-semibold hover:underline z-20"
+            style={{ zIndex: 20 }}
+          >
+            Çıkış Yap
+          </button>
+        )}
+      </div>
+      <div className="flex gap-6 z-10">
         {(routes[userType] || routes.guest).map((item) => (
           <div
             key={item.to}
@@ -105,21 +165,14 @@ const Navbar: React.FC = () => {
           >
             <Link
               to={item.to}
-              className={`no-underline ${
-                isActive(item.to)
-                  ? 'text-blue-600 font-bold'
-                  : 'text-black font-normal'
-              }`}
+              className={`no-underline ${isActive(item.to) ? 'text-blue-600 font-bold' : 'text-black font-normal'}`}
             >
               {item.text}
             </Link>
 
-            {/* Submenu */}
             {item.subpages && (
               <div
-                className={`absolute top-full left-0 min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${
-                  hoveredItem === item.to ? 'block' : 'hidden'
-                }`}
+                className={`absolute top-full left-0 min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${hoveredItem === item.to ? 'block' : 'hidden'}`}
               >
                 {item.subpages.map((sub) => (
                   <Link

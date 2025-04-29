@@ -11,8 +11,9 @@ export default function IdleOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/order/courier/${courierId}`,
-          { params: { accept: false } }
+        const response = await axios.get(`http://localhost:8080/api/order/courier/orders`,
+          { params: { accept: false },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
         setOrders(response.data.data);
       } catch (err) {
@@ -30,7 +31,7 @@ export default function IdleOrders() {
       const response = await axios.post(
         `http://localhost:8080/api/couriers/${courierId}/orders/${orderId}/respond`,
         null,
-        { params: { accept } }
+        { params: { accept }, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
 
       setOrders((prevOrders) =>

@@ -17,7 +17,9 @@ const CourierList = () => {
   useEffect(() => {
     const fetchCouriers = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/couriers/available');
+        const response = await axios.get('http://localhost:8080/api/couriers/available',
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
         setCouriers(response.data.data);
       } catch (err) {
         setError('Kuryeler alınamadı.');

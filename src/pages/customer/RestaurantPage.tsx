@@ -18,9 +18,18 @@ export default function RestaurantPage() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
+        const token = localStorage.getItem('token');
+        console.log('Token:', token); 
+
         const response = await axios.get<ApiResponse<Restaurant[]>>(
-          'http://localhost:8080/api/restaurant/all'
+          'http://localhost:8080/api/restaurant/all',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
         setRestaurants(response.data.data);
       } catch (err) {
         setError('Restoranlar yüklenemedi.');

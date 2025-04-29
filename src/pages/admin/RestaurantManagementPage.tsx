@@ -17,7 +17,11 @@ export default function AdminRestaurantManagementPage() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/restaurant/all'); // API endpoint'i restoran verisini alacak şekilde değiştirin
+        const response = await axios.get('http://localhost:8080/api/restaurant/all',
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          }
+        ); // API endpoint'i restoran verisini alacak şekilde değiştirin
         setRestaurants(response.data.data); // API'nin döndürdüğü veriyi uygun şekilde ayarlayın
       } catch (err) {
         setError('Failed to load restaurants');
@@ -46,7 +50,11 @@ export default function AdminRestaurantManagementPage() {
         address: newRestaurantAddress,
         phone: newRestaurantPhone
       };
-      const response = await axios.post('http://localhost:8080/api/restaurant', newRestaurant);
+      const response = await axios.post('http://localhost:8080/api/restaurant', newRestaurant, 
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
       
       if (response.status === 200) {
         // Yeni restoran başarılı bir şekilde eklendiyse

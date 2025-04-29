@@ -23,7 +23,11 @@ export default function AdminOrderControlPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/order/all');
+        const response = await axios.get('http://localhost:8080/api/order/all',
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          }
+        );
         const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
           ...order,
           searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
