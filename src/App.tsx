@@ -2,6 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 
+// 404
+import NotFound from './components/NotFound';
+
 // Login/Signup
 import Login from './pages/login-signup/Login';
 import Signup from './pages/login-signup/Signup';
@@ -40,7 +43,7 @@ const App: React.FC = () => {
   return (
     
       <div>
-        <Navbar />
+        {/*<Navbar /> */}
         <Routes>
           {/* LoginSelector */}
 
@@ -89,8 +92,8 @@ const App: React.FC = () => {
           <Route path="/admin/review-management" element={<ReviewManagementPage />} />
 
 
-          
-
+          {/* 404 Page */}
+          <Route path="*" element={<NotFound />} />
     
 
         </Routes>
