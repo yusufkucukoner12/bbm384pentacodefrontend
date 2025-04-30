@@ -6,14 +6,17 @@ export default function IdleOrders() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const courierId = 145331; // Assuming this is the courierId for this session
+  const courierId = 145331;
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/order/courier/orders`,
-          { params: { accept: false },
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        const response = await axios.get(
+          'http://localhost:8080/api/order/courier/orders',
+          {
+            params: { accept: false, past: false },
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          }
         );
         setOrders(response.data.data);
       } catch (err) {
@@ -25,21 +28,25 @@ export default function IdleOrders() {
     fetchOrders();
   }, []);
 
-  // Function to handle Accept
-  const handleRespondToAssignment = async (orderId: number, accept: boolean) => {
+  // Updated function: accept status as a string
+  const handleRespondToAssignment = async (orderId: number, status: 'IN_TRANSIT' | 'REJECTED') => {
     try {
+      console.log('Responding to order:', orderId, 'with status:', status);
       const response = await axios.post(
-        `http://localhost:8080/api/couriers/${courierId}/orders/${orderId}/respond`,
+        `http://localhost:8080/api/couriers/orders/${orderId}/respond`,
         null,
-        { params: { accept }, headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        {
+          params: { status }, // Make sure backend expects this
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
       );
 
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.pk === orderId ? { ...order, status: accept ? OrderStatusEnum.IN_TRANSIT : OrderStatusEnum.REJECTED } : order
+          order.pk === orderId ? { ...order, status: OrderStatusEnum[status] } : order
         )
       );
-      alert(response.data.message); 
+      alert(response.data.message);
       window.location.reload();
     } catch (err) {
       setError('Failed to respond to the order');
@@ -109,13 +116,13 @@ export default function IdleOrders() {
                 {/* Accept/Reject Buttons */}
                 <div className="mt-5 flex justify-between items-center">
                   <button
-                    onClick={() => handleRespondToAssignment(order.pk, true)} 
+                    onClick={() => handleRespondToAssignment(order.pk, 'IN_TRANSIT')}
                     className="px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all duration-300"
                   >
                     Accept
                   </button>
                   <button
-                    onClick={() => handleRespondToAssignment(order.pk, false)} 
+                    onClick={() => handleRespondToAssignment(order.pk, 'REJECTED')}
                     className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-300"
                   >
                     Reject

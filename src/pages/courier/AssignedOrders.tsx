@@ -12,13 +12,13 @@ export default function AcceptedOrders() {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(`http://localhost:8080/api/order/courier/orders`, {
-          params: { accept: true},
+          params: { accept: true, past: false },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        const acceptedOrders = response.data.data.filter((order: OrderDTO) =>
-          order.status === OrderStatusEnum.IN_TRANSIT
+        const acceptedOrders = response.data.data.filter(
+          (order: OrderDTO) => order.status === OrderStatusEnum.IN_TRANSIT
         );
-        setOrders(response.data.data);
+        setOrders(acceptedOrders);
       } catch (err) {
         setError('Failed to fetch accepted orders');
       } finally {
@@ -27,6 +27,29 @@ export default function AcceptedOrders() {
     };
     fetchOrders();
   }, []);
+
+  const handleFinishOrder = async (orderId: number) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/couriers/orders/${orderId}/respond`,
+        null,
+        {
+          params: { status: OrderStatusEnum.DELIVERED },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.pk === orderId ? { ...order, status: OrderStatusEnum.DELIVERED } : order
+        )
+      );
+
+      alert(response.data.message || 'Order marked as delivered.');
+    } catch (err) {
+      setError('Failed to finish the order');
+    }
+  };
 
   if (error) {
     return <div className="text-red-500 text-center mt-5">{error}</div>;
@@ -86,10 +109,24 @@ export default function AcceptedOrders() {
                   <p className="font-semibold">Total Price: ${order.totalPrice.toFixed(2)}</p>
                 </div>
 
-                {/* Additional Info */}
+                {/* Courier Info */}
                 <div className="mt-3 text-gray-600">
-                  <p className="font-semibold">Courier: {order.courier ? order.courier.name : 'No courier assigned'}</p>
+                  <p className="font-semibold">
+                    Courier: {order.courier ? order.courier.name : 'No courier assigned'}
+                  </p>
                 </div>
+
+                {/* Finish Button */}
+                {order.status === OrderStatusEnum.IN_TRANSIT && (
+                  <div className="mt-5 text-right">
+                    <button
+                      onClick={() => handleFinishOrder(order.pk)}
+                      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
+                    >
+                      Finish
+                    </button>
+                  </div>
+                )}
               </li>
             ))
           )}
