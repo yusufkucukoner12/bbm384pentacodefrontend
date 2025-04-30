@@ -60,7 +60,7 @@ export default function ReviewCart() {
         <div className="md:col-span-2 space-y-4">
           {cartItems.map((item: Menu, index: any) => (
             <div key={index} className="flex items-start border rounded-lg p-4">
-              <img src={item.imageurl} alt={item.name} className="w-28 h-24 object-cover rounded-lg mr-4" />
+              <img src={item.imageUrl} alt={item.name} className="w-28 h-24 object-cover rounded-lg mr-4" />
               <div className="flex-1">
                 <h2 className="text-xl font-semibold text-red-700">{item.name}</h2>
                 <p className="text-sm text-gray-600">{item.description}</p>

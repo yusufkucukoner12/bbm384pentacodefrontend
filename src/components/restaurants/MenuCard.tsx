@@ -1,96 +1,65 @@
-// components/restaurants/MenuCard.tsx
-import { useState } from 'react';
 import { Menu } from '../../types/Menu';
 
 interface Props {
   menu: Menu;
   onEdit: () => void;
-  onDelete: (menuId: number) => void; // 🔧 Bunu ekle
+  onDelete: (menuId: number) => void;
+  isSelected?: boolean;
+  onSelect?: (menuId: number) => void;
 }
 
-export function MenuCard({ menu, onEdit, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [name, setName] = useState(menu.name);
-  const [description, setDescription] = useState(menu.description);
-  const [price, setPrice] = useState(menu.price.toString());
-
-  const handleSave = () => {
-    onEdit();
-    setExpanded(false);
-  };
-
-  const handleCancel = () => {
-    setName(menu.name);
-    setDescription(menu.description);
-    setPrice(menu.price.toString());
-    setExpanded(false);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Kart tıklanmasını engelle
-    onDelete(menu.pk);   // Menü ID'sini gönder
-  };
-
+export function MenuCard({ menu, onEdit, onDelete, isSelected, onSelect }: Props) {
   return (
-    <div
-      className={`p-4 border rounded-lg shadow transition-all duration-300 bg-white ${
-        expanded ? 'scale-105' : ''
-      }`}
-      onClick={() => setExpanded(true)}
-    >
-      {expanded ? (
-        <div>
-          <input
-            className="w-full border rounded px-2 py-1 mb-2"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <textarea
-            className="w-full border rounded px-2 py-1 mb-2"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-2 py-1 mb-2"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-
-          <div className="flex justify-end">
-            <button
-              className="px-3 py-1 bg-red-500 text-white rounded mr-2"
-              onClick={handleDelete}
+    <div className="relative p-4 border border-amber-600 rounded-lg shadow-lg bg-orange-50 hover:shadow-xl transition transform hover:-translate-y-1">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            {onSelect && (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onSelect(menu.pk)}
+                className="h-5 w-5 text-orange-700"
+              />
+            )}
+            <h3 className="text-xl font-bold text-red-700">{menu.name}</h3>
+          </div>
+          <p className="text-amber-800 mt-1">{menu.description}</p>
+          <p className="text-orange-600 font-semibold mt-1">${menu.price.toFixed(2)}</p>
+          {menu.category && <p className="text-amber-700 mt-1">Category: {menu.category}</p>}
+          <div className="mt-2">
+            <span
+              className={`inline-block px-2 py-1 rounded text-sm ${
+                menu.isAvailable ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
+              }`}
             >
-              Delete
-            </button>
-            <button
-              className="px-3 py-1 bg-gray-300 rounded mr-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCancel();
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              className="px-3 py-1 bg-orange-600 text-white rounded"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSave();
-              }}
-            >
-              Save
-            </button>
+              {menu.isAvailable ? 'Available' : 'Unavailable'}
+            </span>
+            <span className="ml-2 inline-block px-2 py-1 rounded text-sm bg-amber-200 text-amber-800">
+              {menu.isDrink ? 'Drink' : 'Food'}
+            </span>
           </div>
         </div>
-      ) : (
-        <div>
-          <h3 className="text-lg font-semibold">{menu.name}</h3>
-          <p>{menu.description}</p>
-          <p className="text-orange-600 font-bold">${menu.price}</p>
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={onEdit}
+            className="px-3 py-1 bg-orange-700 text-white rounded hover:bg-orange-800 mr-2"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onDelete(menu.pk)}
+            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Delete
+          </button>
         </div>
-      )}
+      </div>
+      <img
+        src={menu.imageUrl || 'https://via.placeholder.com/150?text=No+Image'}
+        alt={menu.name}
+        className="mt-4 w-full h-40 object-cover rounded"
+      />
     </div>
   );
 }

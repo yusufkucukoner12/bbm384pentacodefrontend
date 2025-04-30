@@ -77,7 +77,7 @@ export default function LoadRestaurant(props: { restaurant: Restaurant }) {
                   key={item.pk}
                   title={item.name}
                   description={item.description}
-                  imageUrl={item.imageurl}
+                  imageUrl={item.imageUrl}
                   footerContent={`${item.price} TL`}
                   to={`/restaurant/menu/${item.pk}`}
                 >
