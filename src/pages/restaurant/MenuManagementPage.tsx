@@ -23,7 +23,7 @@ export default function MenuManagementPage() {
   const [filterType, setFilterType] = useState('');
   const [selectedMenus, setSelectedMenus] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const loadMenus = async () => {
