@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { RestaurantCard } from '../../components/restaurants/RestaurantCard';
 import { RestaurantTable } from '../../components/restaurants/RestaurantTable';
 import { SkeletonLoader } from '../../components/restaurants/SkeletonLoader';
-import { Restaurant } from '../../types/Restaurant';
+import { Restaurant } from '../../types/NewRestaurant';
 import { fetchRestaurants } from '../../components/service/RestaurantService';
+import { RestaurantCard } from '../../components/restaurants/RestaurantCard';
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
