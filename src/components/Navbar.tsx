@@ -16,8 +16,6 @@ const routes: Record<string, NavItem[]> = {
   ],
   customer: [
     { to: '/customer/restaurants', text: 'Restoranlar' },
-    { to: '/customer/review-cart', text: 'Sepetim' },
-    { to: '/customer/order', text: 'Sipariş Ver' },
     { to: '/customer/account-management', text: 'Hesabım' },
   ],
   restaurant: [
@@ -47,17 +45,10 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
     { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
     { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
-    { to: '/admin/courier-management', text: 'Kurye Yönetimi' },
-    { to: '/admin/customer-management', text: 'Müşteri Yönetimi' },
-    { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
-    { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
-    { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
   ],
 };
 
 const mapFromRoleToRoute = (role: string): string => {
-  // print
-  console.log('Role:', role);
   switch (role) {
     case 'ROLE_CUSTOMER':
       return 'customer';
@@ -81,14 +72,6 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
-    // localStorage.removeItem('token');
-    // localStorage.removeItem('role');
-    if (!savedRole) {
-
-      setRole('guest');
-      return;
-    }
-    console.log('Saved Role:', savedRole);
     const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
     setRole(mappedRole);
     // update when url changes
