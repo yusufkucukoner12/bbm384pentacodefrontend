@@ -50,140 +50,94 @@ const routes: Record<string, NavItem[]> = {
   ],
 };
 
-const mainRoutes: NavItem[] = [
-  { to: '/login', text: 'Giriş/Kayıt' },
-  { to: '/customer/restaurants', text: 'Müşteri' },
-  { to: '/restaurant/account-management', text: 'Restoran' },
-  { to: '/courier/account-management', text: 'Kurye' },
-  { to: '/admin/main', text: 'Admin' },
-];
+const mapFromRoleToRoute = (role: string): string => {
+  switch (role) {
+    case 'ROLE_CUSTOMER':
+      return 'customer';
+    case 'ROLE_RESTAURANT':
+      return 'restaurant';
+    case 'ROLE_COURIER':
+      return 'courier';
+    case 'ROLE_ADMIN':
+      return 'admin';
+    default:
+      return 'guest';
+  }
+};
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const path = location.pathname.split('/')[1] || '';
-  const userType =
-    path === '' || path === 'login' || path === 'signup' || path === 'admin-login'
-      ? 'guest'
-      : path;
-
-  const isActive = (to: string) => location.pathname === to;
-
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<string>('guest');
+  const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
-    const validateToken = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setIsLoggedIn(false);
-        return;
-      }
-  
-      try {
-        const res = await axios.get('/api/auth/validate-token', {
-          headers: {
-            'Authorization': `Bearer ${token}`, 
-            'Content-Type': 'application/json',
-          },
-        });
-  
-        setIsLoggedIn(res.status === 200);
-      } catch (error) {
-        console.error('Token validation error:', error);
-        setIsLoggedIn(false);
-      }
-    };
-  
-    validateToken();
+    const savedRole = localStorage.getItem('role');
+    const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
+    setRole(mappedRole);
   }, []);
-  
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('token');
-  
     try {
-      const resp = await axios.post('/api/auth/logout', {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Send the token as a Bearer token
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      setIsLoggedIn(false);
-
-      if (resp.status === 200) {
-        window.location.href = '/login';
-      }
+      await axios.post('/api/auth/logout');
     } catch (error) {
-      console.error('Logout error:', error);
-      localStorage.removeItem('token');
+      console.error('Logout failed:', error);
+    } finally {
       localStorage.removeItem('role');
-      setIsLoggedIn(false);
+      localStorage.removeItem('token');
+      setRole('guest');
+      window.location.href = '/login';
     }
   };
-  
+
+  const navItems = routes[role] || routes['guest'];
 
   return (
-    <nav className="bg-gray-100 p-4 z-10 fixed top-0 left-0 w-full shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          {mainRoutes.map((item, index) => (
-            <React.Fragment key={item.to}>
-              {index > 0 && <span className="mx-2 text-gray-500">|</span>}
+    <nav className="w-full bg-orange-50 shadow-md border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="flex gap-6 items-center">
+          {navItems.map((item) => (
+            <div
+              key={item.to}
+              className="relative"
+              onMouseEnter={() => setHovered(item.to)}
+              onMouseLeave={() => setHovered(null)}
+            >
               <Link
                 to={item.to}
-                className={`mr-4 no-underline ${isActive(item.to) ? 'text-blue-600 font-bold' : 'text-black font-normal'}`}
+                className={`px-6 py-3 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  location.pathname === item.to
+                    ? 'text-red-700 border-b-2 border-red-700'
+                    : 'text-gray-800 hover:text-red-700 hover:bg-orange-100'
+                }`}
               >
                 {item.text}
               </Link>
-            </React.Fragment>
+
+              {item.subpages && hovered === item.to && (
+                <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
+                  {item.subpages.map((sub) => (
+                    <Link
+                      key={sub.to}
+                      to={sub.to}
+                      className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                    >
+                      {sub.text}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
-        {isLoggedIn && (
-          <button 
-            onClick={handleLogout} 
-            className="text-red-600 font-semibold hover:underline z-20"
-            style={{ zIndex: 20 }}
+        {role !== 'guest' && (
+          <button
+            onClick={handleLogout}
+            className="text-red-500 font-medium hover:text-red-600 transition duration-150"
           >
             Çıkış Yap
           </button>
         )}
-      </div>
-      <div className="flex gap-6 z-10">
-        {(routes[userType] || routes.guest).map((item) => (
-          <div
-            key={item.to}
-            className="relative"
-            onMouseEnter={() => setHoveredItem(item.to)}
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <Link
-              to={item.to}
-              className={`no-underline ${isActive(item.to) ? 'text-blue-600 font-bold' : 'text-black font-normal'}`}
-            >
-              {item.text}
-            </Link>
-
-            {item.subpages && (
-              <div
-                className={`absolute top-full left-0 min-w-[160px] border border-gray-300 bg-white py-2 shadow-md z-10 ${hoveredItem === item.to ? 'block' : 'hidden'}`}
-              >
-                {item.subpages.map((sub) => (
-                  <Link
-                    key={sub.to}
-                    to={sub.to}
-                    className="block px-4 py-2 text-black no-underline hover:bg-gray-100"
-                  >
-                    {sub.text}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
       </div>
     </nav>
   );

@@ -5,7 +5,6 @@ import { Restaurant } from '../../types/Restaurant';
 import { ApiResponse } from '../../types/ApiResponse';
 import GenericCard from '../../components/GenericCard'; // Adjust the path
 import { AddToCartButton } from '../../components/AddToCartButton';
-import { NavbarForRestaurant } from '../../components/restaurants/NavbarForRestaurant'; // Adjust the path
 import { SearchAndSort } from '../../components/restaurants/SearchAndSort'; // Adjust the path
 import { FilterPanel } from '../../components/restaurants/FilterPanel'; // Adjust the import path
 import { RestaurantList } from '../../components/restaurants/RestaurantList'; // Adjust the import path
@@ -43,8 +42,6 @@ export default function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-yellow-50">
-      <NavbarForRestaurant />
-
       <div className="flex">
         <div className="w-4/5 p-4">
           <SearchAndSort />

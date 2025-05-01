@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import LoadRestaurant from "../../components/LoadRestaurant";
 import { Restaurant } from "../../types/Restaurant";
-import { NavbarForRestaurant } from '../../components/restaurants/NavbarForRestaurant'; // Adjust the path
 import { FilterPanel } from '../../components/restaurants/FilterPanel'; // Adjust the import path
 
 
@@ -34,7 +33,6 @@ export default function SingleRestaurantPage() {
 
   return (
       <div className="min-h-screen bg-yellow-50">
-        <NavbarForRestaurant />
   
         <div className="flex">
           <div className="w-4/5 p-4">

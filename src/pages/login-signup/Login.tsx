@@ -5,7 +5,7 @@ import Background from '../../Background';
 
 interface User {
   token: string;
-  role: string;
+  authorities: string[];
 }
 
 interface LoginResponse {
@@ -89,7 +89,11 @@ const Login: React.FC = () => {
       });
 
       const token = response.data.user.token;
-      const userRole = response.data.user.role;
+
+      console.log('Token:', token);
+      console.log('User Role:', response.data.user);
+      console.log('User Authorities:', response.data.user.authorities);
+      const userRole = response.data.user.authorities[0];
 
       localStorage.setItem('token', token);
       localStorage.setItem('role', userRole);

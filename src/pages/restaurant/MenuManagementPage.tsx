@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { NavbarForRestaurant } from '../../components/restaurants/NavbarForRestaurant';
 import { MenuCard } from '../../components/restaurants/MenuCard';
 import { MenuTable } from '../../components/restaurants/MenuTable';
 import { MenuFormModal } from '../../components/restaurants/MenuFormModal';
@@ -141,7 +140,6 @@ export default function MenuManagementPage() {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <NavbarForRestaurant />
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold text-red-700 mb-6">Menu Management</h1>
 

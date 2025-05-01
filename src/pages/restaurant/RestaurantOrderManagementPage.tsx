@@ -1,8 +1,6 @@
-// components/pages/restaurant/RestaurantOrderManagementPage.tsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
-import { NavbarForRestaurant } from '../../components/restaurants/NavbarForRestaurant';
 import { OrderSearch } from '../../components/admin/OrderSearch';
 import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
 import { RestaurantOrderList } from '../../components/restaurants/RestaurantOrderList';
@@ -91,13 +89,12 @@ export default function RestaurantOrderManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50">
-      <NavbarForRestaurant />
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-orange-700 mb-4">Order Management</h1>
+    <div className="min-h-screen bg-orange-50">
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold text-red-700 mb-6">Order Management</h1>
         
-        <div className="flex">
-          <div className="w-4/5 p-4">
+        <div className="flex gap-6">
+          <div className="w-4/5 p-6 bg-white shadow-md rounded-lg">
             <OrderSearch 
               searchQuery={searchQuery} 
               setSearchQuery={setSearchQuery} 
@@ -112,7 +109,7 @@ export default function RestaurantOrderManagementPage() {
             />
           </div>
           
-          <div className="w-1/5 p-4">
+          <div className="w-1/5 p-6 bg-white shadow-md rounded-lg">
             <OrderStatusFilter 
               selectedStatuses={selectedStatuses} 
               setSelectedStatuses={setSelectedStatuses} 
