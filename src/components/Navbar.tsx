@@ -51,6 +51,8 @@ const routes: Record<string, NavItem[]> = {
 };
 
 const mapFromRoleToRoute = (role: string): string => {
+  // print
+  console.log('Role:', role);
   switch (role) {
     case 'ROLE_CUSTOMER':
       return 'customer';
@@ -72,9 +74,17 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('role');
+    if (!savedRole) {
+
+      setRole('guest');
+      return;
+    }
+    console.log('Saved Role:', savedRole);
     const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
     setRole(mappedRole);
-  }, []);
+  }, [location]);
 
   const handleLogout = async () => {
     try {

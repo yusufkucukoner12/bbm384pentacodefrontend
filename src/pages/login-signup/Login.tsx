@@ -52,12 +52,19 @@ const Login: React.FC = () => {
           if (response.status === 200) {
             // Token is valid, redirect to the appropriate dashboard based on role
             const userRole = localStorage.getItem('role');
+            if (!userRole) {
+              console.error('No role found in local storage, redirecting to login');
+              // remove token if role is not found
+              localStorage.removeItem('token');
+              return;
+            }
+
             if (userRole === 'restaurant') {
               navigate('/restaurant/main');
             } else if (userRole === 'courier') {
               navigate('/courier/main');
             } else {
-              navigate('/customer/main');
+              navigate('/customer/main2');
             }
           }
         } catch (err) {
