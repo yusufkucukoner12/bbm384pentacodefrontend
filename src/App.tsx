@@ -38,6 +38,7 @@ import DeliveryManagementPage from './pages/admin/AdminOrderControlPage';
 import MainAdminPage from './pages/admin/MainAdminPage';
 import RestaurantManagementPage from './pages/admin/RestaurantManagementPage';
 import ReviewManagementPage from './pages/admin/ReviewManagementPage';
+import ActiveOrdersPage from './pages/customer/ActiveOrdersPage';
 
 const App: React.FC = () => {
   return (
@@ -69,6 +70,7 @@ const App: React.FC = () => {
           <Route path="/customer/review-cart" element={<ReviewCart/>} />
           <Route path="/customer/order" element={<OrderPage />} />
           <Route path="/customer/account-management" element={<AccountManagement />} />
+          <Route path="/customer/active-orders" element={<ActiveOrdersPage />} />
 
           {/* Restaurant */}
           <Route path="/restaurant/account-management" element={<RestaurantAccountManagementPage />} />

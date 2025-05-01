@@ -17,6 +17,14 @@ const routes: Record<string, NavItem[]> = {
   customer: [
     { to: '/customer/restaurants', text: 'Restoranlar' },
     { to: '/customer/account-management', text: 'Hesabım' },
+    {
+      to: '/customer/active-orders',
+      text: 'Siparişlerim',
+      subpages: [
+        { to: '/customer/active-orders?old=false', text: 'Aktif Siparişler' },
+        { to: '/customer/active-orders?old=true', text: 'Geçmiş Siparişler' },
+      ],
+    },
   ],
   restaurant: [
     {
