@@ -13,10 +13,21 @@ const getAuthHeaders = () => {
   };
 };
 
-export const fetchMenus = async (): Promise<Menu[]> => {
+export const fetchMenus = async (
+  searchQuery: string = '',
+  filterCategory: string = '',
+  filterType: string = '',
+  sortOption: string = 'name-asc'
+): Promise<Menu[]> => {
   try {
     const response = await axios.get(`${API_BASE_URL}/restaurant`, {
       headers: getAuthHeaders(),
+      params: {
+        search: searchQuery,
+        category: filterCategory,
+        type: filterType,
+        sort: sortOption,
+      },
     });
     return response.data.data;
   } catch (error) {

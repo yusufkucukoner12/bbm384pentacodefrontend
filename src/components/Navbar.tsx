@@ -69,16 +69,6 @@ const mapFromRoleToRoute = (role: string): string => {
       return 'admin';
     default:
       return 'guest';
-    case 'ROLE_CUSTOMER':
-      return 'customer';
-    case 'ROLE_RESTAURANT':
-      return 'restaurant';
-    case 'ROLE_COURIER':
-      return 'courier';
-    case 'ROLE_ADMIN':
-      return 'admin';
-    default:
-      return 'guest';
   }
 };
 
@@ -101,7 +91,8 @@ const Navbar: React.FC = () => {
     console.log('Saved Role:', savedRole);
     const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
     setRole(mappedRole);
-  }, []);
+    // update when url changes
+  }, [location]);
 
   useEffect(() => {
     // Fetch cart details if user is a customer and hovered over the cart
@@ -142,8 +133,6 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await axios.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout failed:', error);
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -249,13 +238,11 @@ const Navbar: React.FC = () => {
           <button
             onClick={handleLogout}
             className="text-red-500 font-medium hover:text-red-600 transition duration-150"
-            className="text-red-500 font-medium hover:text-red-600 transition duration-150"
           >
             Çıkış Yap
           </button>
         )}
       </div>
-    </nav>
     </nav>
   );
 };

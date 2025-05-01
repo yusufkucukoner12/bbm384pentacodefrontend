@@ -10,7 +10,6 @@ import { fetchMenus, createMenu, updateMenu, deleteMenu } from '../../components
 
 export default function MenuManagementPage() {
   const [menus, setMenus] = useState<Menu[]>([]);
-  const [filteredMenus, setFilteredMenus] = useState<Menu[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,9 +26,9 @@ export default function MenuManagementPage() {
   useEffect(() => {
     const loadMenus = async () => {
       try {
-        const fetchedMenus = await fetchMenus();
+        const fetchedMenus = await fetchMenus(searchQuery, filterCategory, filterType, sortOption);
         setMenus(fetchedMenus);
-        setFilteredMenus(fetchedMenus);
+        setCurrentPage(1);
       } catch (err) {
         setError('Failed to load menus.');
         toast.error('Failed to load menus.');
@@ -38,40 +37,7 @@ export default function MenuManagementPage() {
       }
     };
     loadMenus();
-  }, []);
-
-  useEffect(() => {
-    let result = [...menus];
-
-    // Search
-    if (searchQuery) {
-      result = result.filter((menu) =>
-        `${menu.name} ${menu.description} ${menu.category}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter
-    if (filterCategory) {
-      result = result.filter((menu) => menu.category.toLowerCase() === filterCategory.toLowerCase());
-    }
-    if (filterType) {
-      result = result.filter((menu) => (filterType === 'drink' ? menu.isDrink : !menu.isDrink));
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      if (sortOption === 'name-asc') return a.name.localeCompare(b.name);
-      if (sortOption === 'name-desc') return b.name.localeCompare(a.name);
-      if (sortOption === 'price-asc') return a.price - b.price;
-      if (sortOption === 'price-desc') return b.price - a.price;
-      return 0;
-    });
-
-    setFilteredMenus(result);
-    setCurrentPage(1);
-  }, [searchQuery, sortOption, filterCategory, filterType, menus]);
+  }, [searchQuery, filterCategory, filterType, sortOption]);
 
   const handleAddMenu = () => {
     setSelectedMenu(null);
@@ -131,7 +97,7 @@ export default function MenuManagementPage() {
     );
   };
 
-  const paginatedMenus = filteredMenus.slice(
+  const paginatedMenus = menus.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -144,7 +110,7 @@ export default function MenuManagementPage() {
         <h1 className="text-3xl font-bold text-red-700 mb-6">Menu Management</h1>
 
         {/* Sticky Header */}
-        <div className="sticky top-0 bg-orange-50 z-10 pb-4">
+        <div className="sticky top-0 bg-orange-50 z-9 pb-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
             <div className="flex items-center w-full md:w-auto">
               <div className="relative w-full md:w-64">
@@ -240,7 +206,7 @@ export default function MenuManagementPage() {
 
         {loading ? (
           <SkeletonLoader />
-        ) : filteredMenus.length === 0 ? (
+        ) : menus.length === 0 ? (
           <div className="text-center py-12">
             <img
               src="https://via.placeholder.com/200?text=No+Menus"
@@ -282,7 +248,7 @@ export default function MenuManagementPage() {
             <div className="flex justify-between items-center mt-6">
               <p className="text-amber-800">
                 Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                {Math.min(currentPage * itemsPerPage, filteredMenus.length)} of {filteredMenus.length}{' '}
+                {Math.min(currentPage * itemsPerPage, menus.length)} of {menus.length}{' '}
                 menus
               </p>
               <div className="flex space-x-2">
@@ -296,10 +262,10 @@ export default function MenuManagementPage() {
                 <button
                   onClick={() =>
                     setCurrentPage((prev) =>
-                      Math.min(prev + 1, Math.ceil(filteredMenus.length / itemsPerPage))
+                      Math.min(prev + 1, Math.ceil(menus.length / itemsPerPage))
                     )
                   }
-                  disabled={currentPage === Math.ceil(filteredMenus.length / itemsPerPage)}
+                  disabled={currentPage === Math.ceil(menus.length / itemsPerPage)}
                   className="px-3 py-1 bg-amber-800 text-white rounded disabled:bg-gray-300"
                 >
                   Next
