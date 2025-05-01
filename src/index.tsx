@@ -13,7 +13,6 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter> {/* App bileşenini buraya sarın */}
-      <Navbar />
       <App />
     </BrowserRouter>
   </React.StrictMode>

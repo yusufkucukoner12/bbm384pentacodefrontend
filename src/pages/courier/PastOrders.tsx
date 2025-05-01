@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
+import CourierNavbar from '../../components/navbars/CourierNavBar'; 
+
 
 export default function PastOrders() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
@@ -33,7 +35,9 @@ export default function PastOrders() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-5 sm:px-10">
+    <div className="min-h-screen bg-yellow-50 py-10 px-5 sm:px-10">
+      <CourierNavbar />
+
       <h1 className="text-3xl font-semibold text-center mb-6">Accepted Orders</h1>
       {loading ? (
         <div className="flex justify-center items-center space-x-2">
