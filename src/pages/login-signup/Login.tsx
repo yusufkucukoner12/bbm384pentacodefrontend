@@ -64,7 +64,7 @@ const Login: React.FC = () => {
             } else if (userRole === 'courier') {
               navigate('/courier/main');
             } else {
-              navigate('/customer/main2');
+              navigate('/customer/restaurants');
             }
           }
         } catch (err) {

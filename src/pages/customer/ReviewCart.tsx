@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // ⬅️ Add this
 
 interface MenuItem {
   pk: number;
@@ -24,6 +25,8 @@ const ReviewCartPage: React.FC = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+
+  const navigate = useNavigate(); // ⬅️ Initialize navigation
 
   const fetchOrder = async () => {
     setLoading(true);
@@ -62,8 +65,13 @@ const ReviewCartPage: React.FC = () => {
         }
       );
       setMessage('✅ Order placed successfully!');
-      setOrderItems([]);
-    } catch (err) {
+      alert('✅ Order placed successfully!');
+      navigate('/success', {
+        state: {
+          message: '✅ Order placed successfully!',
+          redirectTo: '/customer/restaurants',
+        },
+      });    } catch (err) {
       setError('❌ Failed to place order');
       console.error(err);
     } finally {
