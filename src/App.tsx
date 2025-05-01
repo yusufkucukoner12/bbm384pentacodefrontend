@@ -39,6 +39,8 @@ import MainAdminPage from './pages/admin/MainAdminPage';
 import RestaurantManagementPage from './pages/admin/RestaurantManagementPage';
 import ReviewManagementPage from './pages/admin/ReviewManagementPage';
 import ActiveOrdersPage from './pages/customer/ActiveOrdersPage';
+import SuccessRedirectPage from './pages/login-signup/SuccessRedirectPage';
+
 
 const App: React.FC = () => {
   return (
@@ -61,6 +63,8 @@ const App: React.FC = () => {
           <Route path="/courier/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/" element={<Login />} />
+
+          <Route path="/success" element={<SuccessRedirectPage />} />
 
     
           {/* Customer */}

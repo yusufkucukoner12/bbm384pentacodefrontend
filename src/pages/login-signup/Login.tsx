@@ -6,6 +6,7 @@ import Background from '../../Background';
 interface User {
   token: string;
   authorities: string[];
+  name: string;
 }
 
 interface LoginResponse {
@@ -64,7 +65,7 @@ const Login: React.FC = () => {
             } else if (userRole === 'courier') {
               navigate('/courier/main');
             } else {
-              navigate('/login');
+              navigate('/customer/restaurants');
             }
           }
         } catch (err) {
@@ -101,9 +102,12 @@ const Login: React.FC = () => {
       console.log('User Role:', response.data.user);
       console.log('User Authorities:', response.data.user.authorities);
       const userRole = response.data.user.authorities[0];
+      const userName = response.data.user.name;
 
       localStorage.setItem('token', token);
       localStorage.setItem('role', userRole);
+      localStorage.setItem('userName', userName);
+
 
       if (userRole === 'restaurant') {
         navigate('/restaurant/main');

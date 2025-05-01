@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Restaurant } from '../../types/Restaurant';
+import { Restaurant } from '../../types/NewRestaurant';
 
 const API_BASE_URL = 'http://localhost:8080/api/restaurant';
 

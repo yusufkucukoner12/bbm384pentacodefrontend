@@ -75,51 +75,45 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const [role, setRole] = useState<string>('guest');
   const [hovered, setHovered] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<any[]>([]); // Array of cart items
-  const [totalPrice, setTotalPrice] = useState<number>(0); // Total price in the cart
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
     const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
     setRole(mappedRole);
-    // update when url changes
   }, [location]);
 
   useEffect(() => {
-    // Fetch cart details if user is a customer and hovered over the cart
-    if (role === 'customer' && hovered === 'cart') {
-      const token = localStorage.getItem('token'); // Get the token from localStorage
+    const name = localStorage.getItem('userName') || 'Kullanıcı';
+    setUserName(name);
+  }, [role]);
 
-      // Check if token exists
+  useEffect(() => {
+    if (role === 'customer' && hovered === 'cart') {
+      const token = localStorage.getItem('token');
       if (token) {
         axios
           .get('http://localhost:8080/api/customer/get-order', {
-            headers: {
-              Authorization: `Bearer ${token}`, // Adding the Bearer token
-            },
+            headers: { Authorization: `Bearer ${token}` },
           })
           .then((response) => {
-            const orderData = response.data;
-
-            // Set the cart items and total price using the response
-            const items = orderData.data.orderItems || [];
-            setCartItems(items); // Update cart items
+            const items = response.data.data.orderItems || [];
+            setCartItems(items);
             const total = items.reduce((acc: number, item: any) => {
-              const price = item.menu.price ?? 0; // Fallback to 0 if parsedValue is missing
-              const quantity = item.quantity ?? 0; // Fallback to 0 if quantity is missing
+              const price = item.menu.price ?? 0;
+              const quantity = item.quantity ?? 0;
               return acc + price * quantity;
             }, 0);
-            setTotalPrice(total); // Set the total price
-            
+            setTotalPrice(total);
           })
           .catch((error) => {
             console.error('Error fetching cart details:', error);
           });
-      } else {
-        console.error('No token found in localStorage');
       }
     }
-  }, [hovered, role]); // Trigger fetch when hovered over cart and role is customer
+  }, [hovered, role]);
 
   const handleLogout = async () => {
     try {
@@ -127,20 +121,10 @@ const Navbar: React.FC = () => {
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
-      localStorage.removeItem('role');
-      localStorage.removeItem('token');
+      localStorage.clear();
       setRole('guest');
       window.location.href = '/login';
     }
-  };
-
-  const updateCart = (newItem: any) => {
-    setCartItems((prevItems) => {
-      const updatedItems = [...prevItems, newItem];
-      const updatedTotal = updatedItems.reduce((acc, item) => acc + (item.menu.price * item.quantity), 0);
-      setTotalPrice(updatedTotal); // Update total price
-      return updatedItems; // Update the cart items
-    });
   };
 
   const navItems = routes[role] || routes['guest'];
@@ -186,67 +170,61 @@ const Navbar: React.FC = () => {
       ))}
     </div>
 
-    {/* Orta: Logo ve İsim */}
-    <div className="flex justify-center flex-none">
-      <Link to="/" className="flex items-center gap-2">
-        <img src="/hurricane_image.png" alt="Logo" className="h-12 w-12" /> {/* kendi logonuzun path’i */}
-        <span className="text-xl font-bold text-orange-600">HURRICANE</span>
-      </Link>
-    </div>
-
-    {/* Sağ: Sepet + Çıkış */}
-    <div className="flex items-center justify-end gap-6 flex-1">
-      {role === 'customer' && (
-        <div
-          className="relative"
-          onMouseEnter={() => setHovered('cart')}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <Link
-            to="/customer/review-cart"
-            className="font-medium text-red-700 hover:text-red-700 hover:bg-orange-100 px-4 py-2 rounded-md relative"
+        {role !== 'guest' && (
+          <div
+            className="relative"
+            onMouseEnter={() => setHovered('user')}
+            onMouseLeave={() => setHovered(null)}
           >
-            Sepetim
-            <span className="absolute bottom-0 right-0 text-xs text-red-700 font-medium" style={{ marginBottom: '-6px', marginRight: '-10px' }}>
-              {totalPrice.toFixed(2)} ₺
+            <span className="px-4 py-2 rounded-md cursor-pointer text-sm font-medium text-gray-800 hover:text-red-700 hover:bg-orange-100">
+              {userName}
             </span>
-          </Link>
-
-          {hovered === 'cart' && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
-              <div className="px-4 py-3">
-                <h3 className=" font-semibold">Sepetim</h3>
-                {cartItems.length > 0 ? (
-                  cartItems.map((item: any) => (
-                    <div key={item.menu.pk} className="flex justify-between py-2">
-                      <span className="text-sm">{item.menu.name}</span>
-                      <span className="text-sm text-red-700">
-                        {item.quantity} x {item.menu.price} = {(item.menu.price * item.quantity).toFixed(2)} ₺
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-red-700">Sepetiniz boş.</p>
+            {hovered === 'user' && (
+              <div className="absolute right-0 mt-2 w-40 bg-white border border-orange-200 shadow-lg rounded-md z-50">
+                {role === 'customer' && (
+                  <Link
+                    to="/customer/account-management"
+                    className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                  >
+                    Hesap Yönetimi
+                  </Link>
                 )}
+                {role === 'restaurant' && (
+                  <Link
+                    to="/restaurant/account-management"
+                    className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                  >
+                    Hesap Yönetimi
+                  </Link>
+                )}
+                {role === 'courier' && (
+                  <Link
+                    to="/courier/account-management"
+                    className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                  >
+                    Hesap Yönetimi
+                  </Link>
+                )}
+                {role === 'admin' && (
+                  <Link
+                    to="/admin/account-management"
+                    className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                  >
+                    Hesap Yönetimi
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-6 py-3 text-sm text-red-500 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                >
+                  Çıkış Yap
+                </button>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-{role !== 'guest' && (
-  <Link
-    to="#"
-    onClick={handleLogout}
-    className="font-medium text-red-700 hover:text-red-700 hover:bg-orange-100 px-4 py-2 rounded-md relative"
-  >
-    Çıkış Yap
-  </Link>
-)}
-    </div>
-  </div>
-</nav>
-
+            )}
+          </div>
+        )}
+      </div>
+    </nav>
   );
 };
 

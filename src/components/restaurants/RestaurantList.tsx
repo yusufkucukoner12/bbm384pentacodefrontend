@@ -1,5 +1,5 @@
-import { Restaurant } from '../../types/Restaurant';
-import GenericCard from '../../components/GenericCard'; // Adjust the path
+import { Restaurant } from '../../types/NewRestaurant';
+import RestaurantCardNew from './RestaurantCardNew';
 
 interface RestaurantListProps {
   restaurants: Restaurant[];
@@ -49,12 +49,9 @@ export function RestaurantList({ restaurants, error, loading = false }: Restaura
             {Array(9)
               .fill(0)
               .map((_, index) => (
-                <GenericCard
+                <RestaurantCardNew
                   key={`loading-${index}`}
-                  title=""
-                  description=""
-                  imageUrl=""
-                  footerContent=""
+                  restaurant={{} as Restaurant}
                   loading={true}
                 />
               ))}
@@ -71,15 +68,11 @@ export function RestaurantList({ restaurants, error, loading = false }: Restaura
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {restaurants.map((restaurant) => (
-              <GenericCard
+              <RestaurantCardNew
                 key={restaurant.pk}
-                title={restaurant.name}
-                description={`Versiyon: ${restaurant.version}`}
-                imageUrl={restaurant.imageUrl}
-                footerContent={`ID: ${restaurant.pk}`}
+                restaurant={restaurant}
                 to={`/customer/restaurants/${restaurant.pk}`}
                 toData={restaurant}
-                loading={false}
               />
             ))}
           </div>
@@ -91,7 +84,6 @@ export function RestaurantList({ restaurants, error, loading = false }: Restaura
             <p className="text-amber-800">
               Showing 1 to {restaurants.length} of {restaurants.length} restaurants
             </p>
-            {/* Pagination buttons would go here if required */}
           </div>
         )}
       </div>
