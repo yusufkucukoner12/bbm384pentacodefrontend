@@ -6,7 +6,7 @@ import { MenuTable } from '../../components/restaurants/MenuTable';
 import { MenuFormModal } from '../../components/restaurants/MenuFormModal';
 import { SkeletonLoader } from '../../components/restaurants/SkeletonLoader';
 import { Menu } from '../../types/Menu';
-import { fetchMenus, createMenu, updateMenu, deleteMenu } from '../../components/MenuService';
+import { fetchMenus, createMenu, updateMenu, deleteMenu } from '../../components/service/MenuService';
 
 export default function MenuManagementPage() {
   const [menus, setMenus] = useState<Menu[]>([]);

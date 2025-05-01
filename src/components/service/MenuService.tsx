@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Menu } from '../types/Menu';
+import { Menu } from '../../types/Menu';
 
 const API_BASE_URL = 'http://localhost:8080/api/menu';
 

@@ -22,7 +22,7 @@ export default function SingleRestaurantPage() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        .then((res) => setRestaurant(res.data))
+        .then((res) => setRestaurant(res.data.data))
         .catch((err) => console.error(err));
     }
   }, [restaurant, pk]);
