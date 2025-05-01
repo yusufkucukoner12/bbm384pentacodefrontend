@@ -4,6 +4,8 @@ import axios from "axios";
 import LoadRestaurant from "../../components/LoadRestaurant";
 import { Restaurant } from "../../types/Restaurant";
 import { FilterPanel } from '../../components/restaurants/FilterPanel'; // Adjust the import path
+import CustomerNavbar from '../../components/navbars/CustomerNavBar'; 
+
 
 
 
@@ -33,6 +35,7 @@ export default function SingleRestaurantPage() {
 
   return (
       <div className="min-h-screen bg-yellow-50">
+        <CustomerNavbar /> 
   
         <div className="flex">
           <div className="w-4/5 p-4">

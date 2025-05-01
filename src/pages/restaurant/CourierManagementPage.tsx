@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { CourierDTO } from '../../types/Courier';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
+import RestaurantNavbar from '../../components/navbars/RestaurantNavBar';
+
 
 const CourierList = () => {
   const [couriers, setCouriers] = useState<CourierDTO[]>([]);
@@ -102,6 +104,7 @@ const CourierList = () => {
   return (
     <div>
       {/* Order Bar */}
+      <RestaurantNavbar/> 
       <div style={{ display: 'flex', padding: '10px', backgroundColor: '#f0f0f0', marginBottom: '20px' }}>
         <h3>Ready for Pickup Orders</h3>
         <select

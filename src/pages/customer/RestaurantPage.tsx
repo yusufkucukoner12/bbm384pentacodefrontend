@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { RestaurantCard } from '../../components/restaurants/RestaurantCard';
 import { RestaurantTable } from '../../components/restaurants/RestaurantTable';
 import { SkeletonLoader } from '../../components/restaurants/SkeletonLoader';
-import { Restaurant } from '../../types/Restaurant';
+import { Restaurant } from '../../types/NewRestaurant';
 import { fetchRestaurants } from '../../components/service/RestaurantService';
+import CustomerNavbar from '../../components/navbars/CustomerNavBar'; 
+
+import { RestaurantCard } from '../../components/restaurants/RestaurantCard';
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -40,7 +42,9 @@ export default function RestaurantPage() {
   );
 
   return (
-    <div className="min-h-screen bg-orange-50">
+    <div className="min-h-screen bg-yellow-50">
+      <CustomerNavbar /> 
+
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold text-red-700 mb-6">Restaurants</h1>
 
@@ -90,7 +94,7 @@ export default function RestaurantPage() {
               </select>
               <button
                 onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
-                className="px-3 py-2 bg-amber-800 text-white rounded hover:bg-amber-900"
+                className="px-3 py-2 bg-red-700 text-white rounded hover:bg-amber-900"
               >
                 {viewMode === 'grid' ? 'Table View' : 'Grid View'}
               </button>

@@ -5,6 +5,8 @@ import { OrderSearch } from '../../components/admin/OrderSearch';
 import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
 import { RestaurantOrderList } from '../../components/restaurants/RestaurantOrderList';
 import { UpdateOrderStatusModal } from '../../components/restaurants/UpdateOrderStatusModal';
+import RestaurantNavbar from '../../components/navbars/RestaurantNavBar';
+
 
 export default function RestaurantOrderManagementPage() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
@@ -90,6 +92,7 @@ export default function RestaurantOrderManagementPage() {
 
   return (
     <div className="min-h-screen bg-orange-50">
+      <RestaurantNavbar/> 
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold text-red-700 mb-6">Order Management</h1>
         
