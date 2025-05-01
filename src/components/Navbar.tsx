@@ -47,28 +47,11 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
     { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
     { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
-    { to: '/admin/courier-management', text: 'Kurye Yönetimi' },
-    { to: '/admin/customer-management', text: 'Müşteri Yönetimi' },
-    { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
-    { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
-    { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
   ],
 };
 
 const mapFromRoleToRoute = (role: string): string => {
-  // print
-  console.log('Role:', role);
   switch (role) {
-    case 'ROLE_CUSTOMER':
-      return 'customer';
-    case 'ROLE_RESTAURANT':
-      return 'restaurant';
-    case 'ROLE_COURIER':
-      return 'courier';
-    case 'ROLE_ADMIN':
-      return 'admin';
-    default:
-      return 'guest';
     case 'ROLE_CUSTOMER':
       return 'customer';
     case 'ROLE_RESTAURANT':
@@ -91,14 +74,6 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
-    // localStorage.removeItem('token');
-    // localStorage.removeItem('role');
-    if (!savedRole) {
-
-      setRole('guest');
-      return;
-    }
-    console.log('Saved Role:', savedRole);
     const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
     setRole(mappedRole);
   }, []);
@@ -142,8 +117,6 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await axios.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout failed:', error);
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -249,13 +222,11 @@ const Navbar: React.FC = () => {
           <button
             onClick={handleLogout}
             className="text-red-500 font-medium hover:text-red-600 transition duration-150"
-            className="text-red-500 font-medium hover:text-red-600 transition duration-150"
           >
             Çıkış Yap
           </button>
         )}
       </div>
-    </nav>
     </nav>
   );
 };
