@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // ⬅️ Add this
+import { useNavigate } from 'react-router-dom';
 
 interface MenuItem {
   pk: number;
@@ -26,7 +26,7 @@ const ReviewCartPage: React.FC = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const navigate = useNavigate(); // ⬅️ Initialize navigation
+  const navigate = useNavigate();
 
   const fetchOrder = async () => {
     setLoading(true);
@@ -46,6 +46,25 @@ const ReviewCartPage: React.FC = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateOrder = async (pk: number, action: 'add' | 'remove') => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8080/api/customer/update-order/${pk}?action=${action}`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      await fetchOrder(); // Refresh cart
+    } catch (err) {
+      setError('❌ Failed to update order');
+      console.error(err);
     }
   };
 
@@ -71,7 +90,8 @@ const ReviewCartPage: React.FC = () => {
           message: '✅ Order placed successfully!',
           redirectTo: '/customer/restaurants',
         },
-      });    } catch (err) {
+      });
+    } catch (err) {
       setError('❌ Failed to place order');
       console.error(err);
     } finally {
@@ -113,9 +133,24 @@ const ReviewCartPage: React.FC = () => {
                   <p className="text-lg text-orange-300">{item.menu.name}</p>
                   <p className="text-sm text-orange-500">Qty: {item.quantity}</p>
                 </div>
-                <p className="text-orange-200 text-lg">
-                  ${(item.menu.price * item.quantity).toFixed(2)}
-                </p>
+
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => handleUpdateOrder(item.menu.pk, 'remove')}
+                    className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                  >
+                    ➖
+                  </button>
+                  <span className="text-orange-200 text-lg">
+                    ${(item.menu.price * item.quantity).toFixed(2)}
+                  </span>
+                  <button
+                    onClick={() => handleUpdateOrder(item.menu.pk, 'add')}
+                    className="bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                  >
+                    ➕
+                  </button>
+                </div>
               </div>
             ))}
 
@@ -123,7 +158,7 @@ const ReviewCartPage: React.FC = () => {
               <span className="text-orange-400">Total:</span>
               <span className="text-orange-200 font-bold">
                 ${calculateTotal().toFixed(2)}
-              </span>Qty: 47
+              </span>
             </div>
 
             <button
