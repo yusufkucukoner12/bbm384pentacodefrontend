@@ -32,15 +32,11 @@ export default function SingleRestaurantPage() {
   if (!restaurant) return <p>Loading...</p>;
 
   return (
-      <div className="min-h-screen bg-yellow-50">
+      <div className="min-h-screen bg-orange-50">
   
         <div className="flex">
           <div className="w-4/5 p-4">
           <LoadRestaurant restaurant={restaurant} />;
-          </div>
-  
-          <div className="w-1/5 p-4">
-            <FilterPanel />
           </div>
         </div>
       </div>

@@ -4,7 +4,6 @@ import Navbar from "./Navbar";
 const NotFound: React.FC = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <Navbar />
             {/* Logo and Title */}
             <div className="flex items-center gap-2 mb-4">
                 <img src="/hurricane_image.png" alt="Logo" className="w-12 h-12" />
