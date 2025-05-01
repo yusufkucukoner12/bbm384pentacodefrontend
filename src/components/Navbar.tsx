@@ -42,28 +42,21 @@ const routes: Record<string, NavItem[]> = {
   ],
   admin: [
     { to: '/admin/main', text: 'Ana Sayfa' },
-    { to: '/admin/courier-management', text: 'Kurye Yönetimi' },
-    { to: '/admin/customer-management', text: 'Müşteri Yönetimi' },
-    { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
-    { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
-    { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
+    { to: '/admin/courier-management', text: 'Kurye' },
+    { to: '/admin/customer-management', text: 'Müşteri' },
+    { to: '/admin/delivery-management', text: 'Teslimat' },
+    { to: '/admin/restaurant-management', text: 'Restoran' },
+    { to: '/admin/review-management', text: 'İnceleme' },
   ],
 };
 
 const mapFromRoleToRoute = (role: string): string => {
-  // print
-  console.log('Role:', role);
   switch (role) {
-    case 'ROLE_CUSTOMER':
-      return 'customer';
-    case 'ROLE_RESTAURANT':
-      return 'restaurant';
-    case 'ROLE_COURIER':
-      return 'courier';
-    case 'ROLE_ADMIN':
-      return 'admin';
-    default:
-      return 'guest';
+    case 'ROLE_CUSTOMER': return 'customer';
+    case 'ROLE_RESTAURANT': return 'restaurant';
+    case 'ROLE_COURIER': return 'courier';
+    case 'ROLE_ADMIN': return 'admin';
+    default: return 'guest';
   }
 };
 
@@ -74,14 +67,6 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
-    // localStorage.removeItem('token');
-    // localStorage.removeItem('role');
-    if (!savedRole) {
-
-      setRole('guest');
-      return;
-    }
-    console.log('Saved Role:', savedRole);
     const mappedRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
     setRole(mappedRole);
   }, [location]);
@@ -89,8 +74,8 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await axios.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (err) {
+      console.error('Logout failed:', err);
     } finally {
       localStorage.removeItem('role');
       localStorage.removeItem('token');
@@ -99,57 +84,89 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const navItems = routes[role] || routes['guest'];
+  const navItems = routes[role] || [];
 
   return (
-    <nav className="w-full bg-orange-50 shadow-md border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="flex gap-6 items-center">
-          {navItems.map((item) => (
-            <div
-              key={item.to}
-              className="relative"
-              onMouseEnter={() => setHovered(item.to)}
-              onMouseLeave={() => setHovered(null)}
+    <div className="flex items-center p-4 bg-yellow-50 shadow sticky top-0 z-50">
+      {/* Left Links */}
+      <div className="flex items-center gap-6 flex-1">
+        {navItems.slice(0, Math.ceil(navItems.length / 2)).map((item) => (
+          <div key={item.to} className="relative"
+            onMouseEnter={() => setHovered(item.to)}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Link
+              to={item.to}
+              className={`text-lg font-semibold text-orange-700 hover:text-orange-900 ${
+                location.pathname === item.to ? 'underline' : ''
+              }`}
             >
-              <Link
-                to={item.to}
-                className={`px-6 py-3 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  location.pathname === item.to
-                    ? 'text-red-700 border-b-2 border-red-700'
-                    : 'text-gray-800 hover:text-red-700 hover:bg-orange-100'
-                }`}
-              >
-                {item.text}
-              </Link>
+              {item.text}
+            </Link>
+            {item.subpages && hovered === item.to && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
+                {item.subpages.map((sub) => (
+                  <Link
+                    key={sub.to}
+                    to={sub.to}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100"
+                  >
+                    {sub.text}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
-              {item.subpages && hovered === item.to && (
-                <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
-                  {item.subpages.map((sub) => (
-                    <Link
-                      key={sub.to}
-                      to={sub.to}
-                      className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
-                    >
-                      {sub.text}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      {/* Logo + Title */}
+      <div className="flex items-center gap-2">
+        <img src="/hurricane_image.png" alt="Logo" className="w-10 h-10" />
+        <h1 className="text-2xl font-bold text-orange-600">HURRICANE</h1>
+      </div>
+
+      {/* Right Links + Logout */}
+      <div className="flex items-center gap-6 flex-1 justify-end">
+        {navItems.slice(Math.ceil(navItems.length / 2)).map((item) => (
+          <div key={item.to} className="relative"
+            onMouseEnter={() => setHovered(item.to)}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Link
+              to={item.to}
+              className={`text-lg font-semibold text-orange-700 hover:text-orange-900 ${
+                location.pathname === item.to ? 'underline' : ''
+              }`}
+            >
+              {item.text}
+            </Link>
+            {item.subpages && hovered === item.to && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
+                {item.subpages.map((sub) => (
+                  <Link
+                    key={sub.to}
+                    to={sub.to}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100"
+                  >
+                    {sub.text}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
 
         {role !== 'guest' && (
           <button
             onClick={handleLogout}
-            className="text-red-500 font-medium hover:text-red-600 transition duration-150"
+            className="bg-orange-700 text-white px-4 py-2 rounded hover:bg-orange-800"
           >
             Çıkış Yap
           </button>
         )}
       </div>
-    </nav>
+    </div>
   );
 };
 

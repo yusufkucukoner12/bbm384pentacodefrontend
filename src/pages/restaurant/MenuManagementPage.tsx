@@ -144,7 +144,7 @@ export default function MenuManagementPage() {
         <h1 className="text-3xl font-bold text-red-700 mb-6">Menu Management</h1>
 
         {/* Sticky Header */}
-        <div className="sticky top-0 bg-orange-50 z-10 pb-4">
+        <div className="sticky top-0 bg-orange-50 z-9 pb-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
             <div className="flex items-center w-full md:w-auto">
               <div className="relative w-full md:w-64">
