@@ -1,32 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
+import { OrderSearch } from '../../components/admin/OrderSearch';
+import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
 
 export default function AcceptedOrders() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const courierId = 145331; // Assuming this is the courierId for this session
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(`http://localhost:8080/api/order/courier/orders`, {
-          params: { accept: true, past: false },
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          params: { accept: true, past: false, searchQuery, statuses: selectedStatuses.join(',') },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
-        const acceptedOrders = response.data.data.filter(
-          (order: OrderDTO) => order.status === OrderStatusEnum.IN_TRANSIT
-        );
-        setOrders(acceptedOrders);
+        const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
+          ...order,
+          searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
+        }));
+        setOrders(ordersWithSearch);
+        setFilteredOrders(ordersWithSearch);
       } catch (err) {
         setError('Failed to fetch accepted orders');
+        toast.error('Failed to fetch accepted orders');
       } finally {
         setLoading(false);
       }
     };
     fetchOrders();
-  }, []);
+  }, [searchQuery, selectedStatuses]);
 
   const handleFinishOrder = async (orderId: number) => {
     try {
@@ -35,103 +44,103 @@ export default function AcceptedOrders() {
         null,
         {
           params: { status: OrderStatusEnum.DELIVERED },
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.pk === orderId ? { ...order, status: OrderStatusEnum.DELIVERED } : order
         )
       );
-
-      alert(response.data.message || 'Order marked as delivered.');
+      toast.success(response.data.message || 'Order marked as delivered');
     } catch (err) {
       setError('Failed to finish the order');
+      toast.error('Failed to finish the order');
     }
   };
 
-  if (error) {
-    return <div className="text-red-500 text-center mt-5">{error}</div>;
-  }
+  const getStatusBackgroundColor = (status: string) => {
+    switch (status) {
+      case OrderStatusEnum.IN_TRANSIT:
+        return 'bg-blue-100';
+      case OrderStatusEnum.DELIVERED:
+        return 'bg-green-200';
+      default:
+        return 'bg-gray-200';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-5 sm:px-10">
-      <h1 className="text-3xl font-semibold text-center mb-6">Accepted Orders</h1>
-      {loading ? (
-        <div className="flex justify-center items-center space-x-2">
-          <div className="w-8 h-8 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
-          <span className="text-xl text-gray-600">Loading accepted orders...</span>
-        </div>
-      ) : (
-        <ul className="space-y-6">
-          {orders.length === 0 ? (
-            <div className="text-center text-gray-500">No accepted orders found.</div>
-          ) : (
-            orders.map((order) => (
-              <li
-                key={order.pk}
-                className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-medium text-gray-800">Order ID: {order.pk}</h2>
-                  <span
-                    className={`px-3 py-1 rounded-full text-white ${
-                      order.status === OrderStatusEnum.IN_TRANSIT
-                        ? 'bg-blue-500'
-                        : 'bg-green-500'
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </div>
-
-                {/* Restaurant Info */}
-                <div className="mt-3 text-gray-600">
-                  <p className="font-semibold">Restaurant: {order.restaurant.name}</p>
-                  <p className="text-sm text-gray-500">Version: {order.restaurant.version}</p>
-                </div>
-
-                {/* Menu Items */}
-                <div className="mt-3">
-                  <p className="font-semibold">Menu Items:</p>
-                  <ul className="space-y-2">
-                    {order.menus.map((menu, index) => (
-                      <li key={index} className="text-gray-600">
-                        <span className="font-medium">{menu.name}</span> - ${menu.price.toFixed(2)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Total Price */}
-                <div className="mt-3 text-gray-800">
-                  <p className="font-semibold">Total Price: ${order.totalPrice.toFixed(2)}</p>
-                </div>
-
-                {/* Courier Info */}
-                <div className="mt-3 text-gray-600">
-                  <p className="font-semibold">
-                    Courier: {order.courier ? order.courier.name : 'No courier assigned'}
-                  </p>
-                </div>
-
-                {/* Finish Button */}
-                {order.status === OrderStatusEnum.IN_TRANSIT && (
-                  <div className="mt-5 text-right">
-                    <button
-                      onClick={() => handleFinishOrder(order.pk)}
-                      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all"
-                    >
-                      Finish
-                    </button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Accepted Orders</h1>
+        <div className="flex gap-6">
+          <div className="w-4/5">
+            <OrderSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+            {loading ? (
+              <div className="flex flex-wrap gap-6">
+                {Array(6).fill(0).map((_, index) => (
+                  <div key={index} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+                    <div className="bg-white shadow-md rounded-lg p-5 animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-6">
+                {filteredOrders.length === 0 ? (
+                  <div className="text-center text-gray-500 w-full">No accepted orders found.</div>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <div key={order.pk} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+                      <div className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition-all duration-300">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-xl font-medium text-gray-800">Order #{order.pk}</h2>
+                          <span className={`px-2 py-1 rounded ${getStatusBackgroundColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="mt-3 text-gray-600">
+                          <p className="font-semibold">Restaurant: {order.restaurant.name}</p>
+                          <p className="text-sm">Total: ${order.totalPrice.toFixed(2)}</p>
+                        </div>
+                        <div className="mt-3">
+                          <p className="font-semibold">Items:</p>
+                          <ul className="text-sm text-gray-600">
+                            {order.orderItems.slice(0, 2).map((item, index) => (
+                              <li key={index}>{item.quantity}x {item.menu.name}</li>
+                            ))}
+                            {order.orderItems.length > 2 && <li>+{order.orderItems.length - 2} more...</li>}
+                          </ul>
+                        </div>
+                        {order.status === OrderStatusEnum.IN_TRANSIT && (
+                          <div className="mt-5 text-right">
+                            <button
+                              onClick={() => handleFinishOrder(order.pk)}
+                              className="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                            >
+                              Finish
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
                 )}
-              </li>
-            ))
-          )}
-        </ul>
-      )}
+              </div>
+            )}
+          </div>
+          <div className="w-1/5">
+            <OrderStatusFilter selectedStatuses={selectedStatuses} setSelectedStatuses={setSelectedStatuses} />
+          </div>
+        </div>
+        <ToastContainer position="top-right" autoClose={3000} />
+      </div>
     </div>
   );
 }

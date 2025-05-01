@@ -1,138 +1,150 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
+import { OrderSearch } from '../../components/admin/OrderSearch';
+import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
 
 export default function IdleOrders() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const courierId = 145331;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:8080/api/order/courier/orders',
-          {
-            params: { accept: false, past: false },
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-          }
-        );
-        setOrders(response.data.data);
+        const response = await axios.get('http://localhost:8080/api/order/courier/orders', {
+          params: { accept: false, past: false, searchQuery, statuses: selectedStatuses.join(',') },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
+          ...order,
+          searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
+        }));
+        setOrders(ordersWithSearch);
+        setFilteredOrders(ordersWithSearch);
       } catch (err) {
         setError('Failed to fetch orders');
+        toast.error('Failed to fetch orders');
       } finally {
         setLoading(false);
       }
     };
     fetchOrders();
-  }, []);
+  }, [searchQuery, selectedStatuses]);
 
-  // Updated function: accept status as a string
   const handleRespondToAssignment = async (orderId: number, status: 'IN_TRANSIT' | 'REJECTED') => {
     try {
-      console.log('Responding to order:', orderId, 'with status:', status);
       const response = await axios.post(
         `http://localhost:8080/api/couriers/orders/${orderId}/respond`,
         null,
         {
-          params: { status }, // Make sure backend expects this
+          params: { status },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.pk === orderId ? { ...order, status: OrderStatusEnum[status] } : order
         )
       );
-      alert(response.data.message);
-      window.location.reload();
+      toast.success(response.data.message || `Order ${status === 'IN_TRANSIT' ? 'accepted' : 'rejected'}`);
     } catch (err) {
       setError('Failed to respond to the order');
+      toast.error('Failed to respond to the order');
     }
   };
 
-  if (error) {
-    return <div className="text-red-500 text-center mt-5">{error}</div>;
-  }
+  const getStatusBackgroundColor = (status: string) => {
+    switch (status) {
+      case OrderStatusEnum.PLACED:
+        return 'bg-yellow-100';
+      case OrderStatusEnum.ASSIGNED:
+        return 'bg-blue-200';
+      default:
+        return 'bg-gray-200';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-5 sm:px-10">
-      <h1 className="text-3xl font-semibold text-center mb-6">Idle Orders</h1>
-      {loading ? (
-        <div className="flex justify-center items-center space-x-2">
-          <div className="w-8 h-8 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
-          <span className="text-xl text-gray-600">Loading orders...</span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Idle Orders</h1>
+        <div className="flex gap-6">
+          <div className="w-4/5">
+            <OrderSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+            {loading ? (
+              <div className="flex flex-wrap gap-6">
+                {Array(6).fill(0).map((_, index) => (
+                  <div key={index} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+                    <div className="bg-white shadow-md rounded-lg p-5 animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-6">
+                {filteredOrders.length === 0 ? (
+                  <div className="text-center text-gray-500 w-full">No idle orders found.</div>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <div key={order.pk} className="w-full sm:w-1/2 lg:w-1/3 p-2">
+                      <div className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition-all duration-300">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-xl font-medium text-gray-800">Order #{order.pk}</h2>
+                          <span className={`px-2 py-1 rounded ${getStatusBackgroundColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="mt-3 text-gray-600">
+                          <p className="font-semibold">Restaurant: {order.restaurant.name}</p>
+                          <p className="text-sm">Total: ${order.totalPrice.toFixed(2)}</p>
+                        </div>
+                        <div className="mt-3">
+                          <p className="font-semibold">Items:</p>
+                          <ul className="text-sm text-gray-600">
+                            {order.orderItems.slice(0, 2).map((item, index) => (
+                              <li key={index}>{item.quantity}x {item.menu.name}</li>
+                            ))}
+                            {order.orderItems.length > 2 && <li>+{order.orderItems.length - 2} more...</li>}
+                          </ul>
+                        </div>
+                        <div className="mt-5 flex justify-between">
+                          <button
+                            onClick={() => handleRespondToAssignment(order.pk, 'IN_TRANSIT')}
+                            className="px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleRespondToAssignment(order.pk, 'REJECTED')}
+                            className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+          <div className="w-1/5">
+            <OrderStatusFilter selectedStatuses={selectedStatuses} setSelectedStatuses={setSelectedStatuses} />
+          </div>
         </div>
-      ) : (
-        <ul className="space-y-6">
-          {orders.length === 0 ? (
-            <div className="text-center text-gray-500">No idle orders found.</div>
-          ) : (
-            orders.map((order) => (
-              <li
-                key={order.pk}
-                className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-medium text-gray-800">Order ID: {order.pk}</h2>
-                  <span
-                    className={`px-3 py-1 rounded-full text-white ${
-                      order.status === OrderStatusEnum.PLACED
-                        ? 'bg-yellow-500'
-                        : order.status === OrderStatusEnum.DELIVERED
-                        ? 'bg-green-500'
-                        : 'bg-blue-500'
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </div>
-
-                {/* Restaurant Info */}
-                <div className="mt-3 text-gray-600">
-                  <p className="font-semibold">Restaurant: {order.restaurant.name}</p>
-                  <p className="text-sm text-gray-500">Version: {order.restaurant.version}</p>
-                </div>
-
-                {/* Menu Items */}
-                <div className="mt-3">
-                  <p className="font-semibold">Menu Items:</p>
-                  <ul className="space-y-2">
-                    {order.menus.map((menu, index) => (
-                      <li key={index} className="text-gray-600">
-                        <span className="font-medium">{menu.name}</span> - ${menu.price.toFixed(2)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Total Price */}
-                <div className="mt-3 text-gray-800">
-                  <p className="font-semibold">Total Price: ${order.totalPrice.toFixed(2)}</p>
-                </div>
-
-                {/* Accept/Reject Buttons */}
-                <div className="mt-5 flex justify-between items-center">
-                  <button
-                    onClick={() => handleRespondToAssignment(order.pk, 'IN_TRANSIT')}
-                    className="px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all duration-300"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleRespondToAssignment(order.pk, 'REJECTED')}
-                    className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-300"
-                  >
-                    Reject
-                  </button>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
-      )}
+        <ToastContainer position="top-right" autoClose={3000} />
+      </div>
     </div>
   );
 }
