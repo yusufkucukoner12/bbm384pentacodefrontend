@@ -18,7 +18,7 @@ export default function RestaurantPage() {
     const fetchRestaurants = async () => {
       try {
         const token = localStorage.getItem('token');
-        console.log('Token:', token);
+        console.log('Token:', token); 
 
         const response = await axios.get<ApiResponse<Restaurant[]>>(
           'http://localhost:8080/api/restaurant/all',
@@ -41,14 +41,14 @@ export default function RestaurantPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-orange-50">
-      <div className="flex flex-col lg:flex-row">
-        <div className="lg:w-4/5 w-full p-4">
+    <div className="min-h-screen bg-yellow-50">
+      <div className="flex">
+        <div className="w-4/5 p-4">
           <SearchAndSort />
           <RestaurantList restaurants={restaurants} error={error} loading={loading} />
         </div>
 
-        <div className="lg:w-1/5 w-full p-4">
+        <div className="w-1/5 p-4">
           <FilterPanel />
         </div>
       </div>

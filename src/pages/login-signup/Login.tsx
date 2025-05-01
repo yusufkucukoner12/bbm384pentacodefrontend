@@ -121,15 +121,13 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-orange-50">
-      {/* Background Component */}
+    <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       <Background />
-
-      <div className="relative z-10 bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-auto mt-16">
-        <h1 className="text-3xl font-bold text-red-700 text-center mb-4">
+      <div className="relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-4 text-center">
           {role.charAt(0).toUpperCase() + role.slice(1)} Log In
         </h1>
-        <p className="text-center text-gray-700 mb-6">
+        <p className="text-center mb-6">
           {role === 'customer' ? 'Hurry up, continue to earn discounts!' : 'Access your dashboard now!'}
         </p>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
@@ -140,7 +138,7 @@ const Login: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             placeholder={placeholders[role].username}
             required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
           />
           <input
             type="password"
@@ -148,7 +146,7 @@ const Login: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder={placeholders[role].password}
             required
-            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
           />
           <button
             type="submit"
@@ -198,13 +196,13 @@ const Login: React.FC = () => {
             </>
           )}
         </div>
-        <p className="mt-4 text-sm text-center text-gray-700">
+        <p className="mt-4 text-sm text-center">
           Do not have an account?
           <Link to="/signup" className="text-red-500 hover:underline ml-1">
             Sign Up
           </Link>
         </p>
-        <p className="mt-4 text-sm text-center text-gray-700">
+        <p className="mt-4 text-sm text-center">
           Forgot your password?
           <Link to="/resetpassword" className="text-red-500 hover:underline ml-1">
             Reset Password
