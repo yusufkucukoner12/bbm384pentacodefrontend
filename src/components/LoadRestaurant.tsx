@@ -29,14 +29,14 @@ export default function LoadRestaurant(props: { restaurant: Restaurant }) {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-orange-50 p-6 space-y-6">
       {error && <p className="text-red-500">{error}</p>}
       {!loading ? (
         <>
           {/* ✅ Restaurant Header */}
           <div className="flex gap-6 bg-white shadow rounded-xl p-4">
             <img
-              src={props.restaurant.name}
+              src={props.restaurant.imageUrl}
               alt={props.restaurant.name}
               className="w-40 h-40 object-cover rounded-lg"
             />
@@ -48,15 +48,13 @@ export default function LoadRestaurant(props: { restaurant: Restaurant }) {
               <p className="text-orange-600 font-medium">
                 ⭐ 4.7 / 5 - Excellent (25 Reviews)
               </p>
-              <p className="text-gray-500">
-                Opening 10:00 - Closing 22:00
-              </p>
+              <p className="text-gray-500">Opening 10:00 - Closing 22:00</p>
             </div>
           </div>
 
           {/* ✅ Tabs */}
           <div className="flex gap-4 border-b text-center">
-            {["Menu", "Reviews", "Payment Methods", "Restaurant Info"].map((tab) => (
+            {['Menu', 'Reviews', 'Payment Methods', 'Restaurant Info'].map((tab) => (
               <button
                 key={tab}
                 className="pb-2 px-4 font-semibold text-orange-700 border-b-2 border-orange-700"
@@ -86,18 +84,6 @@ export default function LoadRestaurant(props: { restaurant: Restaurant }) {
               ))}
             </div>
           </div>
-
-          {/* ✅ Cart Display */}
-          <Cart cartItems={cart} />
-
-          {/* ✅ Review Cart Button */}
-          <Link
-            to="/customer/review-cart"
-            state={mergedData}
-            className="inline-block mt-6 text-blue-600 underline hover:text-blue-800"
-          >
-            Review Cart
-          </Link>
         </>
       ) : (
         <p className="text-gray-400">Loading restaurant details...</p>
