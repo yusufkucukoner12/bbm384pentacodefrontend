@@ -16,6 +16,8 @@ const routes: Record<string, NavItem[]> = {
   ],
   customer: [
     { to: '/customer/restaurants', text: 'Restoranlar' },
+    { to: '/customer/review-cart', text: 'Sepetim' },
+    { to: '/customer/order', text: 'Sipariş Ver' },
     { to: '/customer/account-management', text: 'Hesabım' },
   ],
   restaurant: [
