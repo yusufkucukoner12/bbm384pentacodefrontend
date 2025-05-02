@@ -41,6 +41,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     const validateAndRedirect = async () => {
       const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role');
       if (token) {
         try {
           // Send token validation request
@@ -59,11 +60,13 @@ const Login: React.FC = () => {
               localStorage.removeItem('token');
               return;
             }
+            console.log("userRole", userRole);
+            
 
-            if (userRole === 'restaurant') {
+            if (userRole === 'ROLE_RESTAURANT') {
               navigate('/restaurant/main');
-            } else if (userRole === 'courier') {
-              navigate('/courier/main');
+            } else if (userRole === 'ROLE_COURIER') {
+              navigate('/courier/account-management');
             } else {
               navigate('/customer/restaurants');
             }
@@ -109,12 +112,12 @@ const Login: React.FC = () => {
       localStorage.setItem('userName', userName);
 
 
-      if (userRole === 'restaurant') {
+      if (userRole === 'ROLE_RESTAURANT') {
         navigate('/restaurant/main');
-      } else if (userRole === 'courier') {
-        navigate('/courier/main');
+      } else if (userRole === 'ROLE_COURIER') {
+        navigate('/courier/account-management');
       } else {
-        navigate('/customer/main');
+        navigate('/customer/restaurants');
       }
 
     } catch (err) {
