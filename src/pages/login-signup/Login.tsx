@@ -64,7 +64,7 @@ const Login: React.FC = () => {
             
 
             if (userRole === 'ROLE_RESTAURANT') {
-              navigate('/restaurant/main');
+              navigate('/restaurant/menu-management');
             } else if (userRole === 'ROLE_COURIER') {
               navigate('/courier/account-management');
             } else {
@@ -113,7 +113,7 @@ const Login: React.FC = () => {
 
 
       if (userRole === 'ROLE_RESTAURANT') {
-        navigate('/restaurant/main');
+        navigate('/restaurant/menu-management');
       } else if (userRole === 'ROLE_COURIER') {
         navigate('/courier/account-management');
       } else {
