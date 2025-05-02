@@ -48,11 +48,11 @@ const routes: Record<string, NavItem[]> = {
 
 const mapFromRoleToRoute = (role: string): string => {
   switch (role) {
-    case 'ROLE_CUSTOMER': return 'customer';
+    case 'ROLE_CUSTOMER':   return 'customer';
     case 'ROLE_RESTAURANT': return 'restaurant';
-    case 'ROLE_COURIER':   return 'courier';
-    case 'ROLE_ADMIN':     return 'admin';
-    default:               return 'guest';
+    case 'ROLE_COURIER':    return 'courier';
+    case 'ROLE_ADMIN':      return 'admin';
+    default:                return 'guest';
   }
 };
 
@@ -64,14 +64,12 @@ const Navbar: React.FC = () => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [userName, setUserName] = useState<string>('');
 
-  // === Shared CSS utilities ===
   const linkClass = (active: boolean = false) =>
     `px-4 py-2 rounded-md font-semibold text-red-700 transition-colors duration-200 ${
       active ? 'bg-orange-100' : 'hover:bg-orange-100'
     }`;
   const subLinkClass =
     'block px-6 py-3 text-sm text-red-700 hover:text-red-700 hover:bg-orange-100 transition duration-150';
-  // ==============================
 
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
@@ -86,25 +84,30 @@ const Navbar: React.FC = () => {
     if (role === 'customer' && hovered === 'cart') {
       const token = localStorage.getItem('token');
       if (!token) return;
-      axios.get('http://localhost:8080/api/customer/get-order', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(res => {
-        const items = res.data.data.orderItems || [];
-        setCartItems(items);
-        setTotalPrice(items.reduce(
-          (sum: number, it: any) => sum + (it.menu.price ?? 0) * (it.quantity ?? 0),
-          0
-        ));
-      })
-      .catch(console.error);
+      axios
+        .get('http://localhost:8080/api/customer/get-order', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(res => {
+          const items = res.data.data.orderItems || [];
+          setCartItems(items);
+          setTotalPrice(
+            items.reduce(
+              (sum: number, it: any) => sum + (it.menu.price ?? 0) * (it.quantity ?? 0),
+              0
+            )
+          );
+        })
+        .catch(console.error);
     }
   }, [hovered, role]);
 
   const handleLogout = async () => {
-    try { await axios.post('/api/auth/logout'); }
-    catch (e) { console.error(e); }
-    finally {
+    try {
+      await axios.post('/api/auth/logout');
+    } catch (e) {
+      console.error(e);
+    } finally {
       localStorage.clear();
       setRole('guest');
       window.location.href = '/login';
@@ -131,7 +134,6 @@ const Navbar: React.FC = () => {
               >
                 {item.text}
               </Link>
-
               {item.subpages && hovered === item.to && (
                 <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
                   {item.subpages.map(sub => (
@@ -145,7 +147,7 @@ const Navbar: React.FC = () => {
           ))}
         </div>
 
-        {/* Middle: logo */}
+        {/* Middle: full-size logo */}
         <div className="flex-1 flex items-center justify-center">
           <img
             src="/hurricane_image.png"
@@ -174,7 +176,6 @@ const Navbar: React.FC = () => {
                   {totalPrice.toFixed(2)} ₺
                 </span>
               </Link>
-
               {hovered === 'cart' && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50 px-4 py-4">
                   <h3 className="font-semibold">Sepetim</h3>
@@ -205,14 +206,20 @@ const Navbar: React.FC = () => {
               onMouseEnter={() => setHovered('user')}
               onMouseLeave={() => setHovered(null)}
             >
+              {/* User name + small logo */}
               <span className={linkClass()}>
                 {userName}
+                <img
+                  src="/hurricane_image.png"
+                  alt="Small Logo"
+                  className="h-4 w-4 inline-block ml-2"
+                />
               </span>
               {hovered === 'user' && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-orange-200 shadow-lg rounded-md z-50">
                   {/* Account links */}
-                  {['customer','restaurant','courier','admin'].map(r => (
-                    role === r && (
+                  {['customer', 'restaurant', 'courier', 'admin'].map(r =>
+                    role === r ? (
                       <Link
                         key={r}
                         to={`/${r}/account-management`}
@@ -220,14 +227,10 @@ const Navbar: React.FC = () => {
                       >
                         Hesap Yönetimi
                       </Link>
-                    )
-                  ))}
-
+                    ) : null
+                  )}
                   {/* Logout */}
-                  <button
-                    onClick={handleLogout}
-                    className={subLinkClass}
-                  >
+                  <button onClick={handleLogout} className={subLinkClass}>
                     Çıkış Yap
                   </button>
                 </div>
