@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { RestaurantCard } from '../../components/admin/RestaurantCard';
 import { Restaurant } from '../../types/Restaurant';
-import AdminNavbar from '../../components/navbars/AdminNavBar'; 
+import { NavbarForAdmin } from '../../components/admin/NavbarForAdmin';
 
 export default function AdminRestaurantManagementPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -70,7 +70,6 @@ export default function AdminRestaurantManagementPage() {
 
   return (
     <div className="min-h-screen bg-yellow-50">
-      <AdminNavbar />
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold text-orange-700 mb-4">Restaurant Management</h1>
 

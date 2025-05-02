@@ -1,9 +1,6 @@
 import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
-import CustomerNavbar from '../../components/navbars/CustomerNavBar'; 
-
-
 
 // Sipariş için tip tanımı
 interface Order {
@@ -41,7 +38,6 @@ const OrderPage: React.FC = () => {
 
   return (
     <div>
-      <CustomerNavbar /> 
       <h2>Sipariş Ver</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>

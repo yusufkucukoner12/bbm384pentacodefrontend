@@ -120,45 +120,84 @@ const Navbar: React.FC = () => {
   const navItems = routes[role] || routes['guest'];
 
   return (
-    <nav className="w-full bg-yellow-50 shadow-md border-b sticky top-0 z-50">
-  <div className="max-w-7xl mx-auto px-0 py-4 flex items-center justify-between">
-    
-    {/* Sol: Nav Linkleri */}
-    <div className="flex gap-6 items-center flex-1 justify-start">
-      {navItems.map((item) => (
-        <div
-          key={item.to}
-          className="relative"
-          onMouseEnter={() => setHovered(item.to)}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <Link
-            to={item.to}
-            className={`px-4 py-2 rounded-md font-semibold transition-colors duration-200 ${
-              location.pathname === item.to
-                ? 'text-red-700 border-b-2 border-red-700'
-                : 'text-red-700 hover:text-red-700 hover:bg-orange-100'
-            }`}
-          >
-            {item.text}
-          </Link>
+    <nav className="w-full bg-orange-50 shadow-md border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="flex gap-6 items-center">
+          {navItems.map((item) => (
+            <div
+              key={item.to}
+              className="relative"
+              onMouseEnter={() => setHovered(item.to)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <Link
+                to={item.to}
+                className={`px-6 py-3 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  location.pathname === item.to
+                    ? 'text-red-700 border-b-2 border-red-700'
+                    : 'text-gray-800 hover:text-red-700 hover:bg-orange-100'
+                }`}
+              >
+                {item.text}
+              </Link>
 
-          {item.subpages && hovered === item.to && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
-              {item.subpages.map((sub) => (
-                <Link
-                  key={sub.to}
-                  to={sub.to}
-                  className="block px-6 py-3 text-sm text-red-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+              {item.subpages && hovered === item.to && (
+                <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
+                  {item.subpages.map((sub) => (
+                    <Link
+                      key={sub.to}
+                      to={sub.to}
+                      className="block px-6 py-3 text-sm text-gray-700 hover:text-red-700 hover:bg-orange-100 transition duration-150"
+                    >
+                      {sub.text}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {role === 'customer' && (
+            <div
+              className="relative"
+              onMouseEnter={() => setHovered('cart')}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <Link
+                to="/customer/review-cart"
+                className="px-6 py-3 rounded-md text-sm font-medium text-gray-800 hover:text-red-700 hover:bg-orange-100 relative"
+              >
+                Sepetim
+                <span
+                  className="absolute bottom-0 right-0 text-xs text-red-700 font-medium"
+                  style={{ marginBottom: '-8px', marginRight: '-10px' }}
                 >
-                  {sub.text}
-                </Link>
-              ))}
+                  {totalPrice.toFixed(2)} ₺
+                </span>
+              </Link>
+
+              {hovered === 'cart' && (
+                <div className="absolute left-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50">
+                  <div className="px-4 py-3">
+                    <h3 className="text-sm font-semibold">Sepetim</h3>
+                    {cartItems.length > 0 ? (
+                      cartItems.map((item: any) => (
+                        <div key={item.menu.pk} className="flex justify-between py-2">
+                          <span className="text-sm">{item.menu.name}</span>
+                          <span className="text-sm text-gray-500">
+                            {item.quantity} x {item.menu.price} = {(item.menu.price * item.quantity).toFixed(2)} ₺
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">Sepetiniz boş.</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
-      ))}
-    </div>
 
         {role !== 'guest' && (
           <div

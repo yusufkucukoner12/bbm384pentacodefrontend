@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios, { AxiosError } from 'axios';
-import CustomerNavbar from '../../components/navbars/CustomerNavBar'; 
-
 
 // Kullanıcı profili için tip tanımı
 interface UserProfile {
@@ -36,7 +34,6 @@ const AccountManagement: React.FC = () => {
 
   return (
     <div>
-      <CustomerNavbar /> 
       <h2>Hesap Yönetimi</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {user ? (

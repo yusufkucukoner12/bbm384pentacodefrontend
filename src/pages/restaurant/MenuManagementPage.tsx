@@ -7,8 +7,6 @@ import { MenuFormModal } from '../../components/restaurants/MenuFormModal';
 import { SkeletonLoader } from '../../components/restaurants/SkeletonLoader';
 import { Menu } from '../../types/Menu';
 import { fetchMenus, createMenu, updateMenu, deleteMenu } from '../../components/service/MenuService';
-import RestaurantNavbar from '../../components/navbars/RestaurantNavBar';
-
 
 export default function MenuManagementPage() {
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -108,7 +106,6 @@ export default function MenuManagementPage() {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <RestaurantNavbar/> 
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold text-red-700 mb-6">Menu Management</h1>
 

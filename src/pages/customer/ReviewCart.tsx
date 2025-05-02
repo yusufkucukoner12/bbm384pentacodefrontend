@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import CustomerNavbar from '../../components/navbars/CustomerNavBar'; 
-
 import { useNavigate } from 'react-router-dom';
 
 interface MenuItem {
@@ -115,7 +113,6 @@ const ReviewCartPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 py-10">
-      <CustomerNavbar /> 
       <div className="max-w-3xl mx-auto mt-10 p-6 bg-[#1f1f1f] rounded-2xl shadow-xl text-white font-semibold">
         <h1 className="text-4xl text-orange-400 mb-8 border-b-2 border-orange-500 pb-4">
           🛒 Review Your Cart

@@ -8,8 +8,6 @@ import { OrderSearch } from '../../components/admin/OrderSearch';
 import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
 import { OrderList } from '../../components/admin/OrderList';
 import { AssignCourierModal } from '../../components/admin/AssignCourierModal';
-import AdminNavbar from '../../components/navbars/AdminNavBar'; 
-
 
 export default function AdminOrderControlPage() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
@@ -97,7 +95,7 @@ export default function AdminOrderControlPage() {
 
   return (
     <div className="min-h-screen bg-yellow-50">
-      <AdminNavbar />
+      <NavbarForAdmin />
       <div className="flex">
         <div className="w-4/5 p-4">
           <OrderSearch 
