@@ -46,7 +46,15 @@ const Signup: React.FC = () => {
       { name: 'restaurantAddress', placeholder: 'Restaurant Address', type: 'text' },
       { name: 'restaurantPhoneNumber', placeholder: 'Restaurant Phone Number', type: 'text' },
       { name: 'restaurantDescription', placeholder: 'Restaurant Description', type: 'text' },
+      { name: 'foodType', placeholder: 'Food Type', type: 'text' },
+      { name: 'openingHours', placeholder: 'Opening Hours', type: 'text' },
+      { name: 'closingHours', placeholder: 'Closing Hours', type: 'text' },
+      { name: 'deliveryTime', placeholder: 'Delivery Time', type: 'text' },
+      { name: 'deliveryFee', placeholder: 'Delivery Fee', type: 'text' },
+      { name: 'minOrderAmount', placeholder: 'Min Order Amount', type: 'text' },
+      { name: 'maxOrderAmount', placeholder: 'Max Order Amount', type: 'text' }
     ],
+    
     courier: [
       { name: 'username', placeholder: 'Courier Username', type: 'text' },
       { name: 'name', placeholder: 'Name Surname', type: 'text' },
