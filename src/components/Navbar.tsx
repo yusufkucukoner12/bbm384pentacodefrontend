@@ -31,9 +31,9 @@ const routes: Record<string, NavItem[]> = {
     { to: '/restaurant/courier-management', text: 'Kurye Yönetimi' },
   ],
   courier: [
+    { to: '/courier/account-management', text: 'Hesap Yönetimi' },
     { to: '/courier/assigned-orders', text: 'Atanan Siparişler' },
     { to: '/courier/idle-orders', text: 'Bekleyen Siparişler' },
-    { to: '/courier/order-details', text: 'Sipariş Detayları' },
     { to: '/courier/past-orders', text: 'Geçmiş Siparişler' },
   ],
   admin: [

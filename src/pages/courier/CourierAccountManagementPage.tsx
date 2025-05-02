@@ -23,16 +23,21 @@ export default function CourierAccountManagementPage() {
         const response = await axios.get(`http://localhost:8080/api/couriers/status`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
+        console.log("RESPONSE",response.data.data);
+        response.data.data.isAvailable = response.data.data.available;
+        response.data.data.isOnline = response.data.data.online;
         setCourier(response.data.data);
         setFormData(response.data.data);
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || 'Failed to fetch courier details';
         setError(errorMessage);
+        console.log("ERRROR",errorMessage);
         toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     };
+    console.log('Fetching courier details...');
     fetchCourier();
 
     // Load dark mode preference
@@ -60,6 +65,7 @@ export default function CourierAccountManagementPage() {
   };
 
   const handleStatusToggle = async (field: 'available' | 'online', value: boolean) => {
+    console.log('Toggling status:', field, value);
     if (!formData) return;
     const updatedData = { ...formData, [field]: value };
     try {
@@ -68,6 +74,10 @@ export default function CourierAccountManagementPage() {
         updatedData,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+      console.log("TOGGLED RESPONSE",response.data.data);
+      response.data.data.isAvailable = response.data.data.available;
+      response.data.data.isOnline = response.data.data.online;
+
       setCourier(response.data.data);
       setFormData(response.data.data);
       toast.success(`${field === 'available' ? 'Availability' : 'Online status'} updated`);
@@ -87,6 +97,9 @@ export default function CourierAccountManagementPage() {
         formData,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+      response.data.data.isAvailable = response.data.data.available;
+      response.data.data.isOnline = response.data.data.online;
+
       setCourier(response.data.data);
       setFormData(response.data.data);
       setIsEditing(false);
@@ -110,6 +123,9 @@ export default function CourierAccountManagementPage() {
         formData,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+      response.data.data.isAvailable = response.data.data.available;
+      response.data.data.isOnline = response.data.data.online;
+
       setCourier(response.data.data);
       setFormData(response.data.data);
       toast.success('Profile picture updated');
