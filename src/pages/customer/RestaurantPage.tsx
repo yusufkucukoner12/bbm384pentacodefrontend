@@ -7,6 +7,7 @@ import { Restaurant } from '../../types/NewRestaurant';
 import { fetchRestaurants } from '../../components/service/RestaurantService';
 import GenericCard from '../../components/GenericCard';
 import RestaurantCardNew from '../../components/restaurants/RestaurantCardNew';
+import { RestaurantCard } from '../../components/restaurants/RestaurantCard';
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -117,7 +118,7 @@ export default function RestaurantPage() {
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedRestaurants.map((restaurant) => (
-                  <RestaurantCardNew key={restaurant.pk} restaurant={restaurant} />
+                  <RestaurantCard key={restaurant.pk} restaurant={restaurant} />
                 ))}
               </div>
             ) : (
