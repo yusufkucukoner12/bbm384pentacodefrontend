@@ -3,5 +3,6 @@ export interface CourierDTO {
     name: string;
     phoneNumber: string;
     isAvailable: boolean;
-    isOnline: boolean;
+    isOnline: boolean; 
+    profilePictureUrl?: string;
   }
