@@ -27,20 +27,11 @@ const routes: Record<string, NavItem[]> = {
     },
   ],
   restaurant: [
-    {
-      to: '/restaurant/account-management',
-      text: 'Hesap Yönetimi',
-      subpages: [
-        { to: '/restaurant/account-management/info', text: 'Bilgi' },
-        { to: '/restaurant/account-management/security', text: 'Güvenlik' },
-      ],
-    },
     { to: '/restaurant/menu-management', text: 'Menü Yönetimi' },
     { to: '/restaurant/orders', text: 'Siparişler' },
     { to: '/restaurant/courier-management', text: 'Kurye Yönetimi' },
   ],
   courier: [
-    { to: '/courier/account-management', text: 'Hesap Yönetimi' },
     { to: '/courier/assigned-orders', text: 'Atanan Siparişler' },
     { to: '/courier/idle-orders', text: 'Bekleyen Siparişler' },
     { to: '/courier/order-details', text: 'Sipariş Detayları' },
