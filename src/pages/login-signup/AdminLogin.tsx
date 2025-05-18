@@ -1,27 +1,58 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import Background from '../../Background';
 
 interface AdminLoginResponse {
-  token: string;
+  user: {
+    token: string;
+    authorities: string[];
+    name: string;
+  };
 }
 
 const AdminLogin: React.FC = () => {
-  const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    const role = localStorage.getItem('adminRole');
+    if (token && role === 'ROLE_ADMIN') {
+      navigate('/admin/main');
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
     try {
-      const response = await axios.post<AdminLoginResponse>('http://localhost:8080/api/admin/login', {
-        username,
-        password,
-      });
-      localStorage.setItem('adminToken', response.data.token);
-      navigate('/admin/main');
+      const response = await axios.post<AdminLoginResponse>(
+        'http://localhost:8080/api/auth/admin-login',
+        {
+          username: formData.username,
+          password: formData.password,
+          authorities: ['ROLE_ADMIN'], // keep consistent with backend if needed
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const { token, authorities, name } = response.data.user;
+
+      localStorage.setItem('adminToken', token);
+      localStorage.setItem('adminRole', authorities[0]);
+      localStorage.setItem('adminName', name);
+
+      if (authorities[0] === 'ROLE_ADMIN') {
+        navigate('/admin/main');
+      } else {
+        setError('Unauthorized role for admin login.');
+      }
     } catch (err) {
       const axiosError = err as AxiosError;
       setError('Admin login failed. Please check your credentials.');
@@ -38,16 +69,16 @@ const AdminLogin: React.FC = () => {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             placeholder="Admin Username"
             required
             className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
           />
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="Password"
             required
             className="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -60,7 +91,7 @@ const AdminLogin: React.FC = () => {
           </button>
         </form>
         <p className="mt-4 text-sm text-center">
-          Are you a regular user?
+          Are you a regular user?{' '}
           <Link to="/login" className="text-red-500 hover:underline ml-1">
             Go to User Login
           </Link>

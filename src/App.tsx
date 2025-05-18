@@ -61,6 +61,7 @@ const App: React.FC = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/restaurant/signup" element={<Signup />} />
           <Route path="/courier/signup" element={<Signup />} />
+          <Route path="/admin/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/" element={<Login />} />
 
