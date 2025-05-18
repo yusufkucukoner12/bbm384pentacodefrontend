@@ -7,7 +7,7 @@ interface SignupResponse {
   message?: string;
 }
 
-type Role = 'customer' | 'restaurant' | 'courier';
+type Role = 'customer' | 'restaurant' | 'courier' | 'admin';
 
 type RoleFields = Record<Role, { name: string; placeholder: string; type: string }[]>;
 
@@ -19,12 +19,15 @@ const Signup: React.FC = () => {
     ? 'restaurant'
     : location.pathname.includes('courier')
     ? 'courier'
+    : location.pathname.includes('admin')
+    ? 'admin'
     : 'customer';
 
   const roleToAuthority: Record<Role, string> = {
     customer: 'ROLE_CUSTOMER',
     restaurant: 'ROLE_RESTAURANT',
     courier: 'ROLE_COURIER',
+    admin: 'ROLE_ADMIN',
   };
 
   const roleFields: RoleFields = {
@@ -64,6 +67,13 @@ const Signup: React.FC = () => {
       { name: 'isAvailable', placeholder: 'Is Available', type: 'checkbox' },
       { name: 'courierPhoneNumber', placeholder: 'Courier Phone Number', type: 'text' },
       { name: 'isOnline', placeholder: 'Is Online', type: 'checkbox' },
+    ],
+    admin: [
+      { name: 'username', placeholder: 'Admin Username', type: 'text' },
+      { name: 'name', placeholder: 'Name Surname', type: 'text' },
+      { name: 'email', placeholder: 'Email', type: 'email' },
+      { name: 'password', placeholder: 'Password', type: 'password' },
+      { name: 'againPassword', placeholder: 'Enter Password Again', type: 'password' },
     ],
   };
 
@@ -206,32 +216,46 @@ const Signup: React.FC = () => {
 
         <div className="mt-6 flex flex-col items-center gap-2">
           {role === 'customer' && (
-            <>
-              <p className="text-gray-500 text-sm">Are you a Restaurant or Courier?</p>
-              <div className="flex gap-4">
-                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
-                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
-              </div>
-            </>
-          )}
-          {role === 'restaurant' && (
-            <>
-              <p className="text-gray-500 text-sm">Are you a Customer or Courier?</p>
-              <div className="flex gap-4">
-                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
-                <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
-              </div>
-            </>
-          )}
-          {role === 'courier' && (
-            <>
-              <p className="text-gray-500 text-sm">Are you a Customer or Restaurant?</p>
-              <div className="flex gap-4">
-                <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
-                <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
-              </div>
-            </>
-          )}
+  <>
+    <p className="text-gray-500 text-sm">Are you a Restaurant, Courier or Admin?</p>
+    <div className="flex gap-4">
+      <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
+      <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
+      <Link to="/admin/signup" className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-full text-sm">Admin Sign Up</Link>
+    </div>
+  </>
+)}
+{role === 'restaurant' && (
+  <>
+    <p className="text-gray-500 text-sm">Are you a Customer, Courier or Admin?</p>
+    <div className="flex gap-4">
+      <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
+      <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
+      <Link to="/admin/signup" className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-full text-sm">Admin Sign Up</Link>
+    </div>
+  </>
+)}
+{role === 'courier' && (
+  <>
+    <p className="text-gray-500 text-sm">Are you a Customer, Restaurant or Admin?</p>
+    <div className="flex gap-4">
+      <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
+      <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
+      <Link to="/admin/signup" className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-full text-sm">Admin Sign Up</Link>
+    </div>
+  </>
+)}
+{role === 'admin' && (
+  <>
+    <p className="text-gray-500 text-sm">Are you a Customer, Restaurant or Courier?</p>
+    <div className="flex gap-4">
+      <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
+      <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
+      <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
+    </div>
+  </>
+)}
+
         </div>
 
         <p className="mt-4 text-sm text-center">
