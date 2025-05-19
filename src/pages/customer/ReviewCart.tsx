@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Restaurant } from '../../types/Restaurant';
 
 interface MenuItem {
   pk: number;
@@ -18,12 +19,14 @@ interface OrderItem {
 interface OrderData {
   data: {
     orderItems: OrderItem[];
+    restaurant: Restaurant;
   };
 }
 
 const ReviewCartPage: React.FC = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<OrderItem[]>([]);
+  const [restaurant, setRestaurant] = useState<Restaurant>();
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState('');
@@ -37,11 +40,10 @@ const ReviewCartPage: React.FC = () => {
       const res = await axios.get<OrderData>(
         'http://localhost:8080/api/customer/get-order',
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+      setRestaurant(res.data.data.restaurant);
       const items = res.data.data.orderItems || [];
       setOrderItems(items);
       filterItems(items, searchQuery);
@@ -59,11 +61,7 @@ const ReviewCartPage: React.FC = () => {
       await axios.post(
         `http://localhost:8080/api/customer/update-order/${pk}?action=${action}`,
         null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       await fetchOrder();
       toast.success(`Item ${action === 'add' ? 'added' : 'removed'} successfully`);
@@ -87,11 +85,7 @@ const ReviewCartPage: React.FC = () => {
         await axios.post(
           `http://localhost:8080/api/customer/update-order/${pk}?action=${action}`,
           null,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       }
       await fetchOrder();
@@ -110,11 +104,7 @@ const ReviewCartPage: React.FC = () => {
       await axios.post(
         'http://localhost:8080/api/customer/place-order',
         null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Order placed successfully!');
       navigate('/success', {
@@ -124,6 +114,7 @@ const ReviewCartPage: React.FC = () => {
         },
       });
     } catch (err) {
+      console.error(err);
       setError('Failed to place order');
       toast.error('Failed to place order');
     } finally {
@@ -131,13 +122,14 @@ const ReviewCartPage: React.FC = () => {
     }
   };
 
-  const calculateTotal = () => {
-    return filteredItems.reduce((sum, item) => {
-      const price = item.menu.price ?? 0;
-      const qty = item.quantity ?? 0;
-      return sum + price * qty;
-    }, 0);
+  // --- New: cost breakdown calculations ---
+  const calculateSubtotal = () => {
+    return orderItems.reduce((sum, item) => sum + item.menu.price * item.quantity, 0);
   };
+
+  const deliveryFee = restaurant?.deliveryFee ?? 0;
+  const calculateTotal = () => calculateSubtotal() + deliveryFee;
+  // ----------------------------------------
 
   const filterItems = (items: OrderItem[], query: string) => {
     if (!query) {
@@ -145,10 +137,9 @@ const ReviewCartPage: React.FC = () => {
       return;
     }
     const lowerQuery = query.toLowerCase();
-    const filtered = items.filter((item) =>
-      item.menu.name.toLowerCase().includes(lowerQuery)
+    setFilteredItems(
+      items.filter((item) => item.menu.name.toLowerCase().includes(lowerQuery))
     );
-    setFilteredItems(filtered);
   };
 
   useEffect(() => {
@@ -204,13 +195,15 @@ const ReviewCartPage: React.FC = () => {
 
         {loading ? (
           <div className="grid grid-cols-1 gap-6">
-            {Array(4).fill(0).map((_, index) => (
-              <div key={index} className="bg-white shadow-md rounded-lg p-5 animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-              </div>
-            ))}
+            {Array(4)
+              .fill(0)
+              .map((_, index) => (
+                <div key={index} className="bg-white shadow-md rounded-lg p-5 animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                </div>
+              ))}
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12">
@@ -228,47 +221,60 @@ const ReviewCartPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
-            {filteredItems.map((item) => (
-              <div
-                key={item.menu.pk}
-                className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-amber-800 text-lg">{item.menu.name}</p>
-                    <p className="text-sm text-amber-600">Price: ${item.menu.price.toFixed(2)}</p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => handleUpdateOrder(item.menu.pk, 'remove')}
-                      className="bg-amber-800 text-white rounded w-8 h-8 flex items-center justify-center hover:bg-amber-900 transition"
-                    >
-                      −
-                    </button>
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(item.menu.pk, parseInt(e.target.value) || 1)
-                      }
-                      min="1"
-                      className="w-12 text-center border border-amber-600 rounded px-2 py-1 text-amber-800 focus:ring-2 focus:ring-orange-700"
-                    />
-                    <button
-                      onClick={() => handleUpdateOrder(item.menu.pk, 'add')}
-                      className="bg-amber-800 text-white rounded w-8 h-8 flex items-center justify-center hover:bg-amber-900 transition"
-                    >
-                      +
-                    </button>
-                    <span className="text-amber-800 text-lg">
-                      ${(item.menu.price * item.quantity).toFixed(2)}
-                    </span>
+          <>
+            <div className="grid grid-cols-1 gap-6">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.menu.pk}
+                  className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-amber-800 text-lg">{item.menu.name}</p>
+                      <p className="text-sm text-amber-600">
+                        Price: ${item.menu.price.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => handleUpdateOrder(item.menu.pk, 'remove')}
+                        className="bg-amber-800 text-white rounded w-8 h-8 flex items-center justify-center hover:bg-amber-900 transition"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleQuantityChange(item.menu.pk, parseInt(e.target.value) || 1)}
+                        min="1"
+                        className="w-12 text-center border border-amber-600 rounded px-2 py-1 text-amber-800 focus:ring-2 focus:ring-orange-700"
+                      />
+                      <button
+                        onClick={() => handleUpdateOrder(item.menu.pk, 'add')}
+                        className="bg-amber-800 text-white rounded w-8 h-8 flex items-center justify-center hover:bg-amber-900 transition"
+                      >
+                        +
+                      </button>
+                      <span className="text-amber-800 text-lg">
+                        ${(item.menu.price * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            {/* Breakdown Footer */}
             <div className="max-w-2xl mx-auto sticky bottom-0 bg-orange-50 pt-4 pb-6 z-10">
+              <div className="mb-2">
+                <div className="flex justify-between text-amber-800">
+                  <span>Subtotal:</span>
+                  <span>${calculateSubtotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-amber-800">
+                  <span>Delivery Fee:</span>
+                  <span>${deliveryFee.toFixed(2)}</span>
+                </div>
+              </div>
               <div className="flex justify-between items-center mb-4 border-t border-amber-200 pt-4">
                 <span className="text-amber-800 font-semibold text-lg">Total:</span>
                 <span className="text-amber-800 font-bold text-lg">
@@ -283,7 +289,7 @@ const ReviewCartPage: React.FC = () => {
                 {placingOrder ? 'Placing Order...' : 'Place Order'}
               </button>
             </div>
-          </div>
+          </>
         )}
 
         <ToastContainer position="top-right" autoClose={3000} />

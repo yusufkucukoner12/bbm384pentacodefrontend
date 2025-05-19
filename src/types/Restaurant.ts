@@ -12,4 +12,7 @@ export interface Restaurant {
   phoneNumber?: string;
   description?: string;
   email?: string;
+  deliveryFee?: number;
+  deliveryTime?: string;
+  foodType?: string;
 }

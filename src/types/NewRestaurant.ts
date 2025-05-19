@@ -13,9 +13,11 @@ export interface Restaurant {
   openingHours: string;
   closingHours: string;
   deliveryTime: string;
-  deliveryFee: string;
+  deliveryFee: number;
   minOrderAmount: string;
   maxOrderAmount: string;
+  rating: number;
+  numberOfRatings: number;
 
   // Related entities
   menus: Menu[];
