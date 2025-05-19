@@ -18,6 +18,7 @@ export interface Restaurant {
   maxOrderAmount: string;
   rating: number;
   numberOfRatings: number;
+  
 
   // Related entities
   menus: Menu[];
