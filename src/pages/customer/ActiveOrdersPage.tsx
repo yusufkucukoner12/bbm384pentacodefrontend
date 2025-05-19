@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { useNavigate } from 'react-router-dom';
 interface MenuItem { pk: number; name: string; price: number }
 interface OrderItem { menu: MenuItem; quantity: number }
 interface RestaurantDTO { pk: number; name: string }
@@ -40,6 +40,9 @@ const ActiveOrdersPage: React.FC = () => {
 
   const itemsPerPage = 6;
   const old = searchParams.get('old') === 'true';
+
+  const navigate = useNavigate();
+  
 
   const fetchActiveOrders = async () => {
     setLoading(true);
@@ -95,12 +98,27 @@ const ActiveOrdersPage: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Order rated successfully');
-      // update state
       setOrders(prev => prev.map(o => o.pk === orderPk ? { ...o, rated: true, rating } : o));
       setFilteredOrders(prev => prev.map(o => o.pk === orderPk ? { ...o, rated: true, rating } : o));
     } catch {
       setError('Failed to rate order');
       toast.error('Failed to rate order');
+    }
+  };
+
+  const handleReorder = async (orderPk: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8080/api/order/re-order/${orderPk}`,
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Order successfully created');
+      navigate('/customer/review-cart');
+    } catch {
+      setError('Failed to reorder');
+      toast.error('Failed to reorder');
     }
   };
 
@@ -174,9 +192,9 @@ const ActiveOrdersPage: React.FC = () => {
                   <p>Status: <strong>{order.status}</strong></p>
                   <p>Total: <strong>${order.totalPrice.toFixed(2)}</strong></p>
 
-                  {/* Rating UI for old orders */}
+                  {/* Rating UI and Reorder Button for old orders */}
                   {old && (
-                    <div className="mt-4">
+                    <div className="mt-4 flex flex-col space-y-4">
                       {!order.rated ? (
                         <div className="flex items-center">
                           <span className="mr-2">Rate:</span>
@@ -205,6 +223,12 @@ const ActiveOrdersPage: React.FC = () => {
                           ))}
                         </div>
                       )}
+                      <button
+                        onClick={e => { e.stopPropagation(); handleReorder(order.pk); }}
+                        className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900"
+                      >
+                        Reorder
+                      </button>
                     </div>
                   )}
                 </div>
@@ -246,7 +270,7 @@ const ActiveOrdersPage: React.FC = () => {
             <button
               className="float-right text-gray-500 hover:text-gray-800"
               onClick={() => setSelectedOrder(null)}
-            >&times;</button>
+            >×</button>
             <h2 className="text-2xl font-bold mb-4">Order #{selectedOrder.pk} Details</h2>
             {selectedOrder.name && <p><strong>Name:</strong> {selectedOrder.name}</p>}
             <p><strong>Restaurant:</strong> {selectedOrder.restaurant.name}</p>
@@ -259,11 +283,11 @@ const ActiveOrdersPage: React.FC = () => {
             <p><strong>Total Price:</strong> ${selectedOrder.totalPrice.toFixed(2)}</p>
             <h3 className="mt-4 font-semibold">Items:</h3>
             <ul className="list-disc list-inside mb-4">
-              {selectedOrder.orderItems.map(i => (
+                {selectedOrder.orderItems.map((i: OrderItem) => (
                 <li key={i.menu.pk}>
                   {i.menu.name} × {i.quantity} @ ${i.menu.price.toFixed(2)}
                 </li>
-              ))}
+                ))}
             </ul>
             <p>
               <strong>Rated:</strong> {selectedOrder.rated ? 'Yes' : 'No'}
