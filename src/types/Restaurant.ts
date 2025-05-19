@@ -15,4 +15,10 @@ export interface Restaurant {
   deliveryFee?: number;
   deliveryTime?: string;
   foodType?: string;
+  latitude?: number;  // Added
+  longitude?: number; // Added
+  openingHours?: string;
+  closingHours?: string;
+  minOrderAmount?: string;
+  maxOrderAmount?: string;
 }

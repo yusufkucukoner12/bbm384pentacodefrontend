@@ -150,17 +150,6 @@ export default function CourierAccountManagementPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-red-700'} mb-6`}>Account Management</h1>
- */}
-          {/* Dark Mode Toggle */}
-          {/* <div className="flex justify-end mb-4">
-            <button
-              onClick={toggleDarkMode}
-              className={`px-3 py-2 rounded-full ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-amber-800 text-white'} hover:bg-opacity-90`}
-            >
-              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            </button>
-          </div> */}
 
           {loading ? (
             <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 animate-pulse">

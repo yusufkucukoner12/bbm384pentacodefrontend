@@ -12,7 +12,7 @@ import AdminLogin from './pages/login-signup/AdminLogin';
 import LoginSelector from './LoginSelector';
 
 // Customer
-import AccountManagement from './pages/customer/AccountManagement';
+import AccountManagement from './pages/customer/CustomerAccountManagement';
 import RestaurantPage from './pages/customer/RestaurantPage';
 import OrderPage from './pages/customer/OrderPage';
 import SingleRestaurantPage from './pages/customer/SingleRestaurantPage';

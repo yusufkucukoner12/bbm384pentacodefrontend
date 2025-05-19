@@ -127,7 +127,7 @@ const ReviewCartPage: React.FC = () => {
     return orderItems.reduce((sum, item) => sum + item.menu.price * item.quantity, 0);
   };
 
-  const deliveryFee = restaurant?.deliveryFee ?? 0;
+  const deliveryFee = Number(restaurant?.deliveryFee ?? 0);
   const calculateTotal = () => calculateSubtotal() + deliveryFee;
   // ----------------------------------------
 

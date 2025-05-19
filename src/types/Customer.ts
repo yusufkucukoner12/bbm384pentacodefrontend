@@ -4,5 +4,7 @@ export interface Customer {
     phoneNumber: string;
     name: string;
     email: string;
+    longitude: number;
+    latitude: number;
   }
   
