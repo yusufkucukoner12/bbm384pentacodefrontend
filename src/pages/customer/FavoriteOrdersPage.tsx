@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useSearchParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+
 interface MenuItem { pk: number; name: string; price: number }
 interface OrderItem { menu: MenuItem; quantity: number }
 interface RestaurantDTO { pk: number; name: string }
@@ -27,55 +27,33 @@ interface OrderDTO {
 
 interface ApiResponse { data: OrderDTO[] }
 
-const ActiveOrdersPage: React.FC = () => {
+const FavoriteOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<OrderDTO | null>(null);
-  const [favoriteOrders, setFavoriteOrders] = useState<Set<number>>(new Set());
 
   const itemsPerPage = 6;
-  const old = searchParams.get('old') === 'true';
-
   const navigate = useNavigate();
-  
 
-  const fetchActiveOrders = async () => {
+  const fetchFavoriteOrders = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get<ApiResponse>(
-        `http://localhost:8080/api/customer/get-active-orders?old=${old}`,
+        'http://localhost:8080/api/customer/get-favorite-orders',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const list = res.data.data || [];
       setOrders(list);
       applyFilterSort(list, searchQuery, sortOption);
-      
-      // Fetch favorite status for each order
-      const favoriteStatuses = await Promise.all(
-        list.map(order => 
-          axios.get<{ data: boolean }>(
-            `http://localhost:8080/api/customer/is-favorite-order/${order.pk}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          ).then(res => ({ pk: order.pk, isFavorite: res.data.data }))
-        )
-      );
-      
-      const favorites = new Set(
-        favoriteStatuses
-          .filter(status => status.isFavorite)
-          .map(status => status.pk)
-      );
-      setFavoriteOrders(favorites);
     } catch {
-      setError('Failed to load orders');
-      toast.error('Failed to load orders');
+      setError('Failed to load favorite orders');
+      toast.error('Failed to load favorite orders');
     } finally {
       setLoading(false);
     }
@@ -107,20 +85,20 @@ const ActiveOrdersPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleRateOrder = async (orderPk: number, rating: number) => {
+  const handleRemoveFromFavorites = async (orderPk: number) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:8080/api/order/rate-order/${orderPk}?rating=${rating}`,
+        `http://localhost:8080/api/customer/remove-from-favorite-orders/${orderPk}`,
         null,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success('Order rated successfully');
-      setOrders(prev => prev.map(o => o.pk === orderPk ? { ...o, rated: true, rating } : o));
-      setFilteredOrders(prev => prev.map(o => o.pk === orderPk ? { ...o, rated: true, rating } : o));
+      toast.success('Order removed from favorites');
+      setOrders(prev => prev.filter(o => o.pk !== orderPk));
+      setFilteredOrders(prev => prev.filter(o => o.pk !== orderPk));
     } catch {
-      setError('Failed to rate order');
-      toast.error('Failed to rate order');
+      setError('Failed to remove order from favorites');
+      toast.error('Failed to remove order from favorites');
     }
   };
 
@@ -140,43 +118,7 @@ const ActiveOrdersPage: React.FC = () => {
     }
   };
 
-  const handleAddToFavorites = async (orderPk: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `http://localhost:8080/api/customer/add-to-favorite-orders/${orderPk}`,
-        null,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Order added to favorites');
-      setFavoriteOrders(prev => new Set(Array.from(prev).concat(orderPk)));
-    } catch {
-      setError('Failed to add order to favorites');
-      toast.error('Failed to add order to favorites');
-    }
-  };
-
-  const handleRemoveFromFavorites = async (orderPk: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `http://localhost:8080/api/customer/remove-from-favorite-orders/${orderPk}`,
-        null,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Order removed from favorites');
-      setFavoriteOrders(prev => {
-        const next = new Set(Array.from(prev));
-        next.delete(orderPk);
-        return next;
-      });
-    } catch {
-      setError('Failed to remove order from favorites');
-      toast.error('Failed to remove order from favorites');
-    }
-  };
-
-  useEffect(() => { fetchActiveOrders(); }, [old]);
+  useEffect(() => { fetchFavoriteOrders(); }, []);
   useEffect(() => { applyFilterSort(orders, searchQuery, sortOption); }, [orders, searchQuery, sortOption]);
 
   const paginated = filteredOrders.slice(
@@ -189,7 +131,7 @@ const ActiveOrdersPage: React.FC = () => {
       <div className="min-h-screen bg-orange-50">
         <div className="container mx-auto p-6">
           <h1 className="text-3xl font-bold text-red-700 mb-6">
-            {old ? 'Old Orders' : 'Your Active Orders'}
+            Favorite Orders
           </h1>
 
           {/* Search & Sort */}
@@ -226,7 +168,7 @@ const ActiveOrdersPage: React.FC = () => {
           ) : paginated.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-amber-800 text-lg">
-                {old ? 'No old orders found.' : 'You have no active orders.'}
+                No favorite orders found.
               </p>
             </div>
           ) : (
@@ -246,60 +188,20 @@ const ActiveOrdersPage: React.FC = () => {
                   <p>Status: <strong>{order.status}</strong></p>
                   <p>Total: <strong>${order.totalPrice.toFixed(2)}</strong></p>
 
-                  {/* Rating UI and Reorder Button for old orders */}
-                  {old && (
-                    <div className="mt-4 flex flex-col space-y-4">
-                      {!order.rated ? (
-                        <div className="flex items-center">
-                          <span className="mr-2">Rate:</span>
-                          {[1,2,3,4,5].map(n => (
-                            <button
-                              key={n}
-                              onClick={e => { e.stopPropagation(); handleRateOrder(order.pk, n); }}
-                              className="text-2xl transform hover:scale-125"
-                            >
-                              ☆
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <span className="mr-2">You rated:</span>
-                          {[1,2,3,4,5].map(n => (
-                            <span
-                              key={n}
-                              className={`text-2xl ${
-                                n <= (order.rating ?? 0) ? 'text-yellow-500' : 'text-gray-300'
-                              }`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <button
-                        onClick={e => { e.stopPropagation(); handleReorder(order.pk); }}
-                        className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900"
-                      >
-                        Reorder
-                      </button>
-                      {favoriteOrders.has(order.pk) ? (
-                        <button
-                          onClick={e => { e.stopPropagation(); handleRemoveFromFavorites(order.pk); }}
-                          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                          Remove from Favorites
-                        </button>
-                      ) : (
-                        <button
-                          onClick={e => { e.stopPropagation(); handleAddToFavorites(order.pk); }}
-                          className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900"
-                        >
-                          Add to Favorites
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="mt-4 flex flex-col space-y-4">
+                    <button
+                      onClick={e => { e.stopPropagation(); handleRemoveFromFavorites(order.pk); }}
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Remove from Favorites
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); handleReorder(order.pk); }}
+                      className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900"
+                    >
+                      Reorder
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -352,11 +254,11 @@ const ActiveOrdersPage: React.FC = () => {
             <p><strong>Total Price:</strong> ${selectedOrder.totalPrice.toFixed(2)}</p>
             <h3 className="mt-4 font-semibold">Items:</h3>
             <ul className="list-disc list-inside mb-4">
-                {selectedOrder.orderItems.map((i: OrderItem) => (
+              {selectedOrder.orderItems.map((i: OrderItem) => (
                 <li key={i.menu.pk}>
                   {i.menu.name} × {i.quantity} @ ${i.menu.price.toFixed(2)}
                 </li>
-                ))}
+              ))}
             </ul>
             <p>
               <strong>Rated:</strong> {selectedOrder.rated ? 'Yes' : 'No'}
@@ -371,4 +273,4 @@ const ActiveOrdersPage: React.FC = () => {
   );
 };
 
-export default ActiveOrdersPage;
+export default FavoriteOrdersPage; 

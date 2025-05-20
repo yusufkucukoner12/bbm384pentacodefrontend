@@ -27,6 +27,7 @@ const routes: Record<string, NavItem[]> = {
       subpages: [
         { to: '/customer/active-orders?old=false', text: 'Aktif Siparişler' },
         { to: '/customer/active-orders?old=true', text: 'Geçmiş Siparişler' },
+        { to: '/customer/favorite-orders', text: 'Favori Siparişler' },
       ],
     },
   ],

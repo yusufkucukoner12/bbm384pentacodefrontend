@@ -17,6 +17,7 @@ import RestaurantPage from './pages/customer/RestaurantPage';
 import OrderPage from './pages/customer/OrderPage';
 import SingleRestaurantPage from './pages/customer/SingleRestaurantPage';
 import ReviewCart from './pages/customer/ReviewCart';
+import FavoriteOrdersPage from './pages/customer/FavoriteOrdersPage';
 
 // Restaurant
 import RestaurantAccountManagementPage from './pages/restaurant/RestaurantAccountManagementPage';
@@ -76,6 +77,7 @@ const App: React.FC = () => {
           <Route path="/customer/order" element={<OrderPage />} />
           <Route path="/customer/account-management" element={<AccountManagement />} />
           <Route path="/customer/active-orders" element={<ActiveOrdersPage />} />
+          <Route path="/customer/favorite-orders" element={<FavoriteOrdersPage />} />
 
           {/* Restaurant */}
           <Route path="/restaurant/account-management" element={<RestaurantAccountManagementPage />} />
