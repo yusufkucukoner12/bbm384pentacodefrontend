@@ -14,8 +14,13 @@ export default function AdminCourierManagementPage() {
   useEffect(() => {
     const fetchCouriers = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/couriers/available');
-        const courierData = response.data.data;
+        const token = localStorage.getItem("adminToken");
+        const response = await axios.get('http://localhost:8080/api/admin/courier/all', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });        
+      const courierData = response.data.data;
         setCouriers(courierData);
       } catch (err) {
         setError('Kuryeler yüklenirken bir hata oluştu.');

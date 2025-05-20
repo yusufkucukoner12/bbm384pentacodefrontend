@@ -6,5 +6,6 @@ export interface Customer {
     email: string;
     longitude: number;
     latitude: number;
+    userId: number;
   }
   
