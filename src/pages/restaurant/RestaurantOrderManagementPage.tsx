@@ -94,11 +94,11 @@ export default function RestaurantOrderManagementPage() {
         <h1 className="text-3xl font-bold text-red-700 mb-6">Order Management</h1>
         
         <div className="flex gap-6">
-          <div className="w-4/5 p-6 bg-white shadow-md rounded-lg">
-            <OrderSearch 
+            <div className="w-4/5 p-8 bg-white shadow-lg rounded-xl border border-gray-200 transition-all duration-300">
+              <OrderSearch 
               searchQuery={searchQuery} 
               setSearchQuery={setSearchQuery} 
-            />
+              />
             
             {error && <p className="text-red-500 mb-4">{error}</p>}
             

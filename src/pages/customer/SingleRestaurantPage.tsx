@@ -3,9 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import LoadRestaurant from "../../components/LoadRestaurant";
 import { Restaurant } from "../../types/NewRestaurant";
-import { FilterPanel } from '../../components/restaurants/FilterPanel'; // Adjust the import path
-
-
 
 export default function SingleRestaurantPage() {
   const { pk } = useParams(); // this is our restaurant ID
@@ -29,17 +26,13 @@ export default function SingleRestaurantPage() {
 
   console.log("Restaurant:", restaurant);
 
-  if (!restaurant) return <p>Loading...</p>;
+  if (!restaurant) return <p className="text-amber-800 text-lg text-center py-12">Loading...</p>;
 
   return (
-      <div className="min-h-screen bg-orange-50">
-  
-        <div className="flex">
-          <div className="w-5/5 p-4">
-          <LoadRestaurant restaurant={restaurant} />;
-          </div>
-
-        </div>
+    <div className="min-h-screen bg-orange-50">
+      <div className="container mx-auto p-6">
+        <LoadRestaurant restaurant={restaurant} />
       </div>
-    );
+    </div>
+  );
 }
