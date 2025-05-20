@@ -1,9 +1,21 @@
-// components/admin/NavbarForAdmin.tsx
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
 
 export function NavbarForAdmin() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/auth/logout');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      localStorage.clear();
+      navigate('/admin-login');
+    }
+  };
+
   return (
     <div className="flex items-center p-4 bg-amber-50 shadow">
       {/* Left Links */}
@@ -36,7 +48,12 @@ export function NavbarForAdmin() {
         <Link to="/admin/review-management" className="text-xl font-bold text-orange-700">
           Review
         </Link>
-        <button className="bg-orange-700 text-white px-4 py-2 rounded">Logout</button>
+        <button
+          onClick={handleLogout}
+          className="bg-orange-700 text-white px-4 py-2 rounded"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

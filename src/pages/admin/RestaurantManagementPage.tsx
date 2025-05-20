@@ -17,9 +17,9 @@ export default function AdminRestaurantManagementPage() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/restaurant/all',
+        const response = await axios.get('http://localhost:8080/api/admin/restaurant/all',
           {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` },
           }
         ); // API endpoint'i restoran verisini alacak şekilde değiştirin
         setRestaurants(response.data.data); // API'nin döndürdüğü veriyi uygun şekilde ayarlayın
