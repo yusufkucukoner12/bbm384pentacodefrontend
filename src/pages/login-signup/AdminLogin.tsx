@@ -44,9 +44,9 @@ const AdminLogin: React.FC = () => {
 
       const { token, authorities, name } = response.data.user;
 
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminRole', authorities[0]);
-      localStorage.setItem('adminName', name);
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', authorities[0]);
+      localStorage.setItem('userName', name);
 
       if (authorities[0] === 'ROLE_ADMIN') {
         navigate('/admin/main');

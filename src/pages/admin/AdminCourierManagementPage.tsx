@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { CourierCard } from '../../components/admin/CourierCard';
 import { CourierDTO } from '../../types/Courier';
-import { NavbarForAdmin } from '../../components/admin/NavbarForAdmin';
 
 export default function AdminCourierManagementPage() {
   const [couriers, setCouriers] = useState<CourierDTO[]>([]);
@@ -55,7 +54,6 @@ export default function AdminCourierManagementPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavbarForAdmin />
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold text-blue-700 mb-4">Kurye Yönetimi</h1>
 

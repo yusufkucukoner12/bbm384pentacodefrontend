@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { Restaurant} from "../types/NewRestaurant";
-import { Menu } from "../types/Menu";
 import { AddToCartButton } from "./AddToCartButton";
-import { MenuCard } from "../components/restaurants/MenuCard";
+import { Menu } from "../types/Menu";
+import GenericCard from "./GenericCard";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function LoadRestaurant({ restaurant }: { restaurant: Restaurant }) {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [cart, setCart] = useState<Menu[]>([]);
-  const [filteredMenus, setFilteredMenus] = useState<Menu[]>([]);
+  const isAdmin = localStorage.getItem("role") === "ROLE_ADMIN";
 
   useEffect(() => {
     if (restaurant) {
-      setFilteredMenus(restaurant.menus);
       setLoading(false);
     } else {
       setError("Restaurant not found.");
@@ -21,37 +22,30 @@ export default function LoadRestaurant({ restaurant }: { restaurant: Restaurant 
 
   const addToCart = (menuItem: Menu) => {
     setCart((prevCart) => [...prevCart, menuItem]);
+    toast.success(`${menuItem.name} added to cart!`);
   };
 
-  const handleFilterChange = ({
-    search,
-    category,
-    type,
-    sort,
-  }: {
-    search?: string;
-    category?: string;
-    type?: string;
-    sort?: string;
-  }) => {
-    let result = [...restaurant.menus];
+  const handleEditMenu = (menuId: number) => {
+    // Placeholder for edit action (e.g., navigate to edit form)
+    toast.info(`Editing menu item ${menuId}`);
+    // Example: navigate(`/restaurant/menu/edit/${menuId}`);
+  };
 
-    // 🔍 Search filter
-    if (search) {
-      const lower = search.toLowerCase();
-      result = result.filter((item) =>
-        item.name.toLowerCase().includes(lower)
-      );
+  const handleDeleteMenu = async (menuId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please log in to delete menu items");
+        return;
+      }
+      await axios.delete(`/api/restaurant/menu/${menuId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Menu item deleted successfully");
+      // Refresh menus (assuming a parent component will re-fetch restaurant)
+    } catch {
+      toast.error("Failed to delete menu item");
     }
-
-    // 🔃 Sort
-    if (sort === "price-asc") {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sort === "price-desc") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    setFilteredMenus(result);
   };
 
   return (
@@ -70,10 +64,18 @@ export default function LoadRestaurant({ restaurant }: { restaurant: Restaurant 
               <h2 className="text-2xl font-semibold text-red-700">{restaurant.name}</h2>
               <p className="text-amber-800">{restaurant.foodType} • {restaurant.address}</p>
               <p className="text-amber-800">{restaurant.phoneNumber} • {restaurant.email}</p>
-              <p className="text-amber-800">{restaurant.deliveryTime} dk, Delivery Fee: {restaurant.deliveryFee} TL, Min Order: {restaurant.minOrderAmount} TL</p>
-              <p className="text-orange-600 font-medium">⭐ {restaurant.rating} / 5 ({restaurant.numberOfRatings} Reviews)</p>
-              <p className="text-amber-800">Open {restaurant.openingHours} - {restaurant.closingHours}</p>
-              {restaurant.description && <p className="text-amber-800 mt-2">{restaurant.description}</p>}
+              <p className="text-amber-800">
+                {restaurant.deliveryTime} dk, Delivery Fee: {restaurant.deliveryFee} TL, Min Order: {restaurant.minOrderAmount} TL
+              </p>
+              <p className="text-orange-600 font-medium">
+                ⭐ {restaurant.rating} / 5 ({restaurant.numberOfRatings} Reviews)
+              </p>
+              <p className="text-amber-800">
+                Open {restaurant.openingHours} - {restaurant.closingHours}
+              </p>
+              {restaurant.description && (
+                <p className="text-amber-800 mt-2">{restaurant.description}</p>
+              )}
             </div>
           </div>
 
@@ -81,14 +83,19 @@ export default function LoadRestaurant({ restaurant }: { restaurant: Restaurant 
           <div>
             <h3 className="text-2xl font-semibold text-red-700 mb-4">Menu</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMenus.map((item) => (
-                <MenuCard
+              {restaurant.menus.map((item) => (
+                <GenericCard
                   key={item.pk}
-                  menu={item}
-                  onEdit={() => {}}
-                  onDelete={() => {}}
-                  onSelect={() => addToCart(item)}
-                />
+                  title={item.name}
+                  description={item.description}
+                  imageUrl={item.imageUrl || "https://via.placeholder.com/150?text=No+Image"}
+                  footerContent={`${item.price} TL`}
+                  to={`/restaurant/menu/${item.pk}`}
+                >
+                  <div className="flex space-x-2">
+                    <AddToCartButton menuItem={item} onClick={addToCart} />
+                  </div>
+                </GenericCard>
               ))}
             </div>
           </div>

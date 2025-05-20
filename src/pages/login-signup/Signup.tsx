@@ -245,16 +245,16 @@ const Signup: React.FC = () => {
     </div>
   </>
 )}
-{role === 'admin' && (
-  <>
-    <p className="text-gray-500 text-sm">Are you a Customer, Restaurant or Courier?</p>
-    <div className="flex gap-4">
-      <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
-      <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
-      <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
-    </div>
-  </>
-)}
+    {role === 'admin' && (
+      <>
+        <p className="text-gray-500 text-sm">Are you a Customer, Restaurant or Courier?</p>
+        <div className="flex gap-4">
+          <Link to="/signup" className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm">Customer Sign Up</Link>
+          <Link to="/restaurant/signup" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm">Restaurant Sign Up</Link>
+          <Link to="/courier/signup" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full text-sm">Courier Sign Up</Link>
+        </div>
+      </>
+    )}
 
         </div>
 

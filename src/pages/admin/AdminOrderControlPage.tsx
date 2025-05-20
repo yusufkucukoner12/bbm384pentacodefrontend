@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
 import { CourierDTO } from '../../types/Courier';
-import { NavbarForAdmin } from '../../components/admin/NavbarForAdmin';
 import { OrderSearch } from '../../components/admin/OrderSearch';
 import { OrderStatusFilter } from '../../components/admin/OrderStatusFilter';
 import { OrderList } from '../../components/admin/OrderList';
@@ -96,7 +95,6 @@ export default function AdminOrderControlPage() {
 
   return (
     <div className="min-h-screen bg-yellow-50">
-      <NavbarForAdmin />
       <div className="flex">
         <div className="w-4/5 p-4">
           <OrderSearch 
