@@ -22,7 +22,7 @@ export default function AdminOrderControlPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("adminToken");
+        const token = localStorage.getItem("token");
         const response = await axios.get('http://localhost:8080/api/admin/order/all',
           {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
