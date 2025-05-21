@@ -1,87 +1,84 @@
-// components/admin/CourierCard.tsx
-import { useState } from 'react';
+// src/components/admin/CourierCard.tsx
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { CourierDTO } from '../../types/Courier';
 
-interface Props {
+interface CourierCardProps {
   courier: CourierDTO;
-  onEdit: () => void;
-  onDelete: (courierId: number) => void;
+  onSuspend: () => Promise<void>;
+  onUnsuspend: () => Promise<void>;
 }
 
-export function CourierCard({ courier, onEdit, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [name, setName] = useState(courier.name);
-  const [phone, setPhone] = useState(courier.phoneNumber);
+const CourierCard: React.FC<CourierCardProps> = ({ courier, onSuspend, onUnsuspend }) => {
+  const [isBanned, setIsBanned] = useState<boolean | null>(null);
 
-  const handleSave = () => {
-    onEdit();
-    setExpanded(false);
+  useEffect(() => {
+    const fetchBanStatus = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) throw new Error('Token bulunamadı');
+        const response = await axios.get<{ data: boolean }>(
+          `http://localhost:8080/api/admin/getban/${courier.pk}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setIsBanned(response.data.data);
+      } catch {
+        setIsBanned(false);
+      }
+    };
+    fetchBanStatus();
+  }, [courier.pk]);
+
+  const handleClick = async () => {
+    if (isBanned) {
+      await onUnsuspend();
+      setIsBanned(false);
+    } else {
+      await onSuspend();
+      setIsBanned(true);
+    }
   };
 
-  const handleCancel = () => {
-    setName(courier.name);
-    setPhone(courier.phoneNumber);
-    setExpanded(false);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete(courier.pk);
-  };
+  if (isBanned === null) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <p>Durum kontrol ediliyor...</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`p-4 border rounded-lg shadow transition-all duration-300 bg-white ${
-        expanded ? 'scale-105' : ''
-      }`}
-      onClick={() => setExpanded(true)}
-    >
-      {expanded ? (
-        <div>
-          <input
-            className="w-full border rounded px-2 py-1 mb-2"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-2 py-1 mb-2"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+      <div className="mb-3">
+        <label className="block text-sm font-medium text-gray-700">Kurye Adı</label>
+        <p className="text-sm text-gray-600">{courier.name}</p>
+      </div>
+      <div className="mb-3">
+        <label className="block text-sm font-medium text-gray-700">Telefon Numarası</label>
+        <p className="text-sm text-gray-600">{courier.phoneNumber || 'Yok'}</p>
+      </div>
 
-          <div className="flex justify-end">
-            <button
-              className="px-3 py-1 bg-red-500 text-white rounded mr-2"
-              onClick={handleDelete}
-            >
-              Sil
-            </button>
-            <button
-              className="px-3 py-1 bg-gray-300 rounded mr-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCancel();
-              }}
-            >
-              İptal
-            </button>
-            <button
-              className="px-3 py-1 bg-orange-600 text-white rounded"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSave();
-              }}
-            >
-              Kaydet
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h3 className="text-lg font-semibold">{courier.name}</h3>
-          <p>Telefon: {courier.phoneNumber}</p>
-        </div>
-      )}
+      <div className="mt-4">
+        {isBanned ? (
+          <button
+            type="button"
+            onClick={handleClick}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm"
+          >
+            Banı Kaldır
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleClick}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm"
+          >
+            Ban
+          </button>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default CourierCard;

@@ -1,131 +1,77 @@
-// components/pages/admin/AdminRestaurantManagementPage.tsx
+// src/pages/admin/AdminRestaurantManagementPage.tsx
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { RestaurantCard } from '../../components/admin/RestaurantCard';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import RestaurantCard from '../../components/admin/RestaurantCard';
 import { Restaurant } from '../../types/Restaurant';
+import { NavbarForAdmin } from '../../components/admin/NavbarForAdmin';
 
 export default function AdminRestaurantManagementPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  const [newRestaurantName, setNewRestaurantName] = useState('');
-  const [newRestaurantAddress, setNewRestaurantAddress] = useState('');
-  const [newRestaurantPhone, setNewRestaurantPhone] = useState('');
 
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/admin/restaurant/all',
-          {
-            headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` },
-          }
-        ); // API endpoint'i restoran verisini alacak şekilde değiştirin
-        setRestaurants(response.data.data); // API'nin döndürdüğü veriyi uygun şekilde ayarlayın
-      } catch (err) {
-        setError('Failed to load restaurants');
+        const token = localStorage.getItem("adminToken");
+        if (!token) throw new Error('Token bulunamadı');
+        const response = await axios.get('http://localhost:8080/api/admin/restaurant/all', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setRestaurants(response.data.data);
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || 'Restoranlar yüklenirken hata oluştu.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     };
-
     fetchRestaurants();
   }, []);
 
-  const handleEdit = (restaurantId: number) => {
-    console.log(`Edit restaurant with ID: ${restaurantId}`);
-    // Burada düzenleme işlemini başlatabilirsiniz
+  const suspendRestaurant = async (restaurantId: number) => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) throw new Error('Token bulunamadı');
+    await axios.put(`http://localhost:8080/api/admin/ban/${restaurantId}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success('Restoran askıya alındı.');
   };
 
-  const handleDelete = (restaurantId: number) => {
-    console.log(`Delete restaurant with ID: ${restaurantId}`);
-    // Burada restoran silme işlemini başlatabilirsiniz
-  };
-
-  const handleAddRestaurant = async () => {
-    try {
-      const newRestaurant = {
-        name: newRestaurantName,
-        address: newRestaurantAddress,
-        phone: newRestaurantPhone
-      };
-      const response = await axios.post('http://localhost:8080/api/restaurant', newRestaurant, 
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
-      
-      if (response.status === 200) {
-        // Yeni restoran başarılı bir şekilde eklendiyse
-        setRestaurants([...restaurants, response.data]); // Restoran listesine ekleyin
-        setNewRestaurantName('');
-        setNewRestaurantAddress('');
-        setNewRestaurantPhone('');
-      }
-    } catch (err) {
-      setError('Failed to add restaurant');
-    }
+  const unsuspendRestaurant = async (restaurantId: number) => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) throw new Error('Token bulunamadı');
+    await axios.put(`http://localhost:8080/api/admin/unban/${restaurantId}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success('Askıya alma kaldırıldı.');
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50">
+    <div className="min-h-screen bg-orange-50">
+      <NavbarForAdmin />
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-orange-700 mb-4">Restaurant Management</h1>
-
+        <h1 className="text-2xl font-semibold text-gray-800 mb-4">Restoran Yönetimi</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-
-        <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-4">Add New Restaurant</h2>
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Restaurant Name"
-              value={newRestaurantName}
-              onChange={(e) => setNewRestaurantName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Restaurant Address"
-              value={newRestaurantAddress}
-              onChange={(e) => setNewRestaurantAddress(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Restaurant Phone"
-              value={newRestaurantPhone}
-              onChange={(e) => setNewRestaurantPhone(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md"
-            />
-          </div>
-          <button
-            onClick={handleAddRestaurant}
-            className="px-4 py-2 bg-green-600 text-white rounded-md"
-          >
-            Add Restaurant
-          </button>
-        </div>
-
         {loading ? (
-          <p>Loading...</p>
+          <p>Yükleniyor...</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {restaurants.map((restaurant) => (
+            {restaurants.map(r => (
               <RestaurantCard
-                key={restaurant.pk}  // pk yerine doğru alanı kullanın
-                restaurant={restaurant}
-                onEdit={() => handleEdit(restaurant.pk)}  // id yerine pk kullanın
-                onDelete={() => handleDelete(restaurant.pk)}  // Aynı şekilde
+                key={r.pk}
+                restaurant={r}
+                onSuspend={() => suspendRestaurant(r.pk)}
+                onUnsuspend={() => unsuspendRestaurant(r.pk)}
               />
             ))}
           </div>
         )}
       </div>
+      <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </div>
   );
 }

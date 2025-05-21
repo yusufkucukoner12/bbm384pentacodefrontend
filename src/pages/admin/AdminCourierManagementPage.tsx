@@ -1,71 +1,61 @@
-// components/pages/admin/AdminCourierManagementPage.tsx
+// src/pages/admin/AdminCourierManagementPage.tsx
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CourierCard } from '../../components/admin/CourierCard';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import CourierCard from '../../components/admin/CourierCard';
 import { CourierDTO } from '../../types/Courier';
+import { NavbarForAdmin } from '../../components/admin/NavbarForAdmin';
 
 export default function AdminCourierManagementPage() {
   const [couriers, setCouriers] = useState<CourierDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedCourier, setSelectedCourier] = useState<CourierDTO | null>(null);
 
   useEffect(() => {
     const fetchCouriers = async () => {
       try {
         const token = localStorage.getItem("adminToken");
+        if (!token) throw new Error('Kuryeler Yüklenemedi.');
         const response = await axios.get('http://localhost:8080/api/admin/courier/all', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });        
-      const courierData = response.data.data;
-        setCouriers(courierData);
-      } catch (err) {
-        setError('Kuryeler yüklenirken bir hata oluştu.');
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCouriers(response.data.data);
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || 'Kuryeler yüklenirken bir hata oluştu.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     };
-
     fetchCouriers();
   }, []);
 
-  const handleAddCourier = () => {
-    const maxId = couriers.length > 0 ? Math.max(...couriers.map(c => c.pk)) : 0;
-    const newCourier: CourierDTO = {
-      pk: maxId + 1,
-      name: 'Yeni Kurye',
-      phoneNumber: '',
-      isAvailable: false,
-      isOnline: false,
-    };
-    setCouriers(prev => [...prev, newCourier]);
+  const suspendCourier = async (courierId: number) => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) throw new Error('Token bulunamadı');
+    await axios.put(`http://localhost:8080/api/admin/ban/${courierId}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success('Kurye askıya alındı.');
   };
 
-  const handleEditCourier = (courier: CourierDTO) => {
-    setSelectedCourier(courier);
-    // burada modal açma vs. işlemleri yapılabilir
-  };
-
-  const handleDeleteCourier = (courierId: number) => {
-    setCouriers(prev => prev.filter(courier => courier.pk !== courierId));
+  const unsuspendCourier = async (courierId: number) => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) throw new Error('Token bulunamadı');
+    await axios.put(`http://localhost:8080/api/admin/unban/${courierId}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success('Askıya alma kaldırıldı.');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-orange-50">
+      <NavbarForAdmin />
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-blue-700 mb-4">Kurye Yönetimi</h1>
-
-        <button
-          className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          onClick={handleAddCourier}
-        >
-          + Yeni Kurye Ekle
-        </button>
-
+        <h1 className="text-2xl font-semibold text-gray-800 mb-4">Kurye Yönetimi</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-
         {loading ? (
           <p>Yükleniyor...</p>
         ) : (
@@ -74,13 +64,14 @@ export default function AdminCourierManagementPage() {
               <CourierCard
                 key={courier.pk}
                 courier={courier}
-                onEdit={() => handleEditCourier(courier)}
-                onDelete={() => handleDeleteCourier(courier.pk)}
+                onSuspend={() => suspendCourier(courier.pk)}
+                onUnsuspend={() => unsuspendCourier(courier.pk)}
               />
             ))}
           </div>
         )}
       </div>
+      <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </div>
   );
 }

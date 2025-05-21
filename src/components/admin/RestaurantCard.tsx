@@ -1,79 +1,79 @@
-// components/admin/RestaurantCard.tsx
-import { useState } from 'react';
+// src/components/admin/RestaurantCard.tsx
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Restaurant } from '../../types/Restaurant';
 
-interface Props {
+interface RestaurantCardProps {
   restaurant: Restaurant;
-  onEdit: () => void;
-  onDelete: (restaurantId: number) => void;
+  onSuspend: () => Promise<void>;
+  onUnsuspend: () => Promise<void>;
 }
 
-export function RestaurantCard({ restaurant, onEdit, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [name, setName] = useState(restaurant.name);
+const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSuspend, onUnsuspend }) => {
+  const [isBanned, setIsBanned] = useState<boolean | null>(null);
 
-  const handleSave = () => {
-    onEdit();
-    setExpanded(false);
+  useEffect(() => {
+    const fetchBanStatus = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) throw new Error('Token bulunamadı');
+        const res = await axios.get<{ data: boolean }>(
+          `http://localhost:8080/api/admin/getban/${restaurant.pk}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setIsBanned(res.data.data);
+      } catch {
+        setIsBanned(false);
+      }
+    };
+    fetchBanStatus();
+  }, [restaurant.pk]);
+
+  const handleClick = async () => {
+    if (isBanned) {
+      await onUnsuspend();
+      setIsBanned(false);
+    } else {
+      await onSuspend();
+      setIsBanned(true);
+    }
   };
 
-  const handleCancel = () => {
-    setName(restaurant.name);
-    setExpanded(false);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete(restaurant.pk);
-  };
+  if (isBanned === null) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <p>Durum kontrol ediliyor...</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`p-4 border rounded-lg shadow transition-all duration-300 bg-white ${
-        expanded ? 'scale-105' : ''
-      }`}
-      onClick={() => setExpanded(true)}
-    >
-      {expanded ? (
-        <div>
-          <input
-            className="w-full border rounded px-2 py-1 mb-2"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          
-          <div className="flex justify-end">
-            <button
-              className="px-3 py-1 bg-red-500 text-white rounded mr-2"
-              onClick={handleDelete}
-            >
-              Sil
-            </button>
-            <button
-              className="px-3 py-1 bg-gray-300 rounded mr-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCancel();
-              }}
-            >
-              İptal
-            </button>
-            <button
-              className="px-3 py-1 bg-orange-600 text-white rounded"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSave();
-              }}
-            >
-              Kaydet
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h3 className="text-lg font-semibold">{restaurant.name}</h3>
-        </div>
-      )}
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+      <h2 className="text-lg font-semibold text-gray-800 mb-2">{restaurant.name}</h2>
+      <p className="text-sm text-gray-600"><strong>E-posta:</strong> {restaurant.email || 'Yok'}</p>
+      <p className="text-sm text-gray-600"><strong>Telefon:</strong> {restaurant.phoneNumber || 'Yok'}</p>
+      <p className="text-sm text-gray-600"><strong>Adres:</strong> {restaurant.address || 'Yok'}</p>
+      <p className="text-sm text-gray-600"><strong>Açıklama:</strong> {restaurant.description || 'Yok'}</p>
+
+      <div className="mt-4">
+        {isBanned ? (
+          <button
+            onClick={handleClick}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm"
+          >
+            Banı Kaldır
+          </button>
+        ) : (
+          <button
+            onClick={handleClick}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm"
+          >
+            Ban
+          </button>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default RestaurantCard;
