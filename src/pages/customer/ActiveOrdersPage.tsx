@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+
 interface MenuItem { pk: number; name: string; price: number }
 interface OrderItem { menu: MenuItem; quantity: number }
 interface RestaurantDTO { pk: number; name: string }
@@ -22,6 +23,7 @@ interface OrderDTO {
   orderItems: OrderItem[];
   rated: boolean;
   rating?: number;
+  reviewText?: string;
   createdAt: string;
 }
 
@@ -38,12 +40,12 @@ const ActiveOrdersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<OrderDTO | null>(null);
   const [favoriteOrders, setFavoriteOrders] = useState<Set<number>>(new Set());
+  const [editingReview, setEditingReview] = useState<OrderDTO | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const itemsPerPage = 6;
   const old = searchParams.get('old') === 'true';
-
   const navigate = useNavigate();
-  
 
   const fetchActiveOrders = async () => {
     setLoading(true);
@@ -56,17 +58,16 @@ const ActiveOrdersPage: React.FC = () => {
       const list = res.data.data || [];
       setOrders(list);
       applyFilterSort(list, searchQuery, sortOption);
-      
-      // Fetch favorite status for each order
+
       const favoriteStatuses = await Promise.all(
-        list.map(order => 
+        list.map(order =>
           axios.get<{ data: boolean }>(
             `http://localhost:8080/api/customer/is-favorite-order/${order.pk}`,
             { headers: { Authorization: `Bearer ${token}` } }
           ).then(res => ({ pk: order.pk, isFavorite: res.data.data }))
         )
       );
-      
+
       const favorites = new Set(
         favoriteStatuses
           .filter(status => status.isFavorite)
@@ -91,7 +92,8 @@ const ActiveOrdersPage: React.FC = () => {
       result = result.filter(
         o =>
           o.pk.toString().includes(q) ||
-          o.orderItems.some(i => i.menu.name.toLowerCase().includes(q))
+          o.orderItems.some(i => i.menu.name.toLowerCase().includes(q)) ||
+          (o.reviewText && o.reviewText.toLowerCase().includes(q))
       );
     }
     if (sort === 'date-desc') {
@@ -107,17 +109,27 @@ const ActiveOrdersPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleRateOrder = async (orderPk: number, rating: number) => {
+  const handleRateOrder = async (orderPk: number, rating: number, reviewText: string) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
         `http://localhost:8080/api/order/rate-order/${orderPk}?rating=${rating}`,
-        null,
+        { reviewText },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Order rated successfully');
-      setOrders(prev => prev.map(o => o.pk === orderPk ? { ...o, rated: true, rating } : o));
-      setFilteredOrders(prev => prev.map(o => o.pk === orderPk ? { ...o, rated: true, rating } : o));
+      setOrders(prev =>
+        prev.map(o =>
+          o.pk === orderPk ? { ...o, rated: true, rating, reviewText } : o
+        )
+      );
+      setFilteredOrders(prev =>
+        prev.map(o =>
+          o.pk === orderPk ? { ...o, rated: true, rating, reviewText } : o
+        )
+      );
+      setIsReviewModalOpen(false); // Auto-close modal
+      setEditingReview(null);
     } catch {
       setError('Failed to rate order');
       toast.error('Failed to rate order');
@@ -176,6 +188,22 @@ const ActiveOrdersPage: React.FC = () => {
     }
   };
 
+  const openReviewModal = (order: OrderDTO) => {
+    setEditingReview({ ...order });
+    setIsReviewModalOpen(true);
+  };
+
+  const closeReviewModal = () => {
+    setEditingReview(null);
+    setIsReviewModalOpen(false);
+  };
+
+  const handleReviewChange = (field: 'reviewText' | 'rating', value: string | number) => {
+    if (editingReview) {
+      setEditingReview({ ...editingReview, [field]: value });
+    }
+  };
+
   useEffect(() => { fetchActiveOrders(); }, [old]);
   useEffect(() => { applyFilterSort(orders, searchQuery, sortOption); }, [orders, searchQuery, sortOption]);
 
@@ -197,7 +225,7 @@ const ActiveOrdersPage: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
               <input
                 type="text"
-                placeholder="Search orders..."
+                placeholder="Search orders or reviews..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full md:w-64 border border-amber-600 rounded px-3 py-2 text-amber-800 placeholder-amber-400"
@@ -246,16 +274,18 @@ const ActiveOrdersPage: React.FC = () => {
                   <p>Status: <strong>{order.status}</strong></p>
                   <p>Total: <strong>${order.totalPrice.toFixed(2)}</strong></p>
 
-                  {/* Rating UI and Reorder Button for old orders */}
                   {old && (
                     <div className="mt-4 flex flex-col space-y-4">
                       {!order.rated ? (
                         <div className="flex items-center">
                           <span className="mr-2">Rate:</span>
-                          {[1,2,3,4,5].map(n => (
+                          {[1, 2, 3, 4, 5].map(n => (
                             <button
                               key={n}
-                              onClick={e => { e.stopPropagation(); handleRateOrder(order.pk, n); }}
+                              onClick={e => {
+                                e.stopPropagation();
+                                openReviewModal({ ...order, rating: n, reviewText: '' });
+                              }}
                               className="text-2xl transform hover:scale-125"
                             >
                               ☆
@@ -265,7 +295,7 @@ const ActiveOrdersPage: React.FC = () => {
                       ) : (
                         <div className="flex items-center">
                           <span className="mr-2">You rated:</span>
-                          {[1,2,3,4,5].map(n => (
+                          {[1, 2, 3, 4, 5].map(n => (
                             <span
                               key={n}
                               className={`text-2xl ${
@@ -305,20 +335,23 @@ const ActiveOrdersPage: React.FC = () => {
             </div>
           )}
 
-          {/* Pagination */}
           {filteredOrders.length > itemsPerPage && (
             <div className="flex justify-between items-center mt-6">
               <button
                 onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
                 className="px-3 py-1 bg-amber-800 text-white rounded disabled:bg-gray-300"
-              >Prev</button>
+              >
+                Prev
+              </button>
               <span>Page {currentPage} of {Math.ceil(filteredOrders.length / itemsPerPage)}</span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(filteredOrders.length / itemsPerPage)))}
                 disabled={currentPage === Math.ceil(filteredOrders.length / itemsPerPage)}
                 className="px-3 py-1 bg-amber-800 text-white rounded disabled:bg-gray-300"
-              >Next</button>
+              >
+                Next
+              </button>
             </div>
           )}
 
@@ -326,7 +359,6 @@ const ActiveOrdersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Details Modal */}
       {selectedOrder && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
@@ -339,8 +371,10 @@ const ActiveOrdersPage: React.FC = () => {
             <button
               className="float-right text-gray-500 hover:text-gray-800"
               onClick={() => setSelectedOrder(null)}
-            >×</button>
-            <h2 className="text-2xl font-bold mb-4">Order #{selectedOrder.pk} Details</h2>
+            >
+              ×
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">Order #{selectedOrder.pk} Details</h2>
             {selectedOrder.name && <p><strong>Name:</strong> {selectedOrder.name}</p>}
             <p><strong>Restaurant:</strong> {selectedOrder.restaurant.name}</p>
             <p><strong>Status:</strong> {selectedOrder.status}</p>
@@ -350,13 +384,13 @@ const ActiveOrdersPage: React.FC = () => {
             )}
             <p><strong>Version:</strong> {selectedOrder.version}</p>
             <p><strong>Total Price:</strong> ${selectedOrder.totalPrice.toFixed(2)}</p>
-            <h3 className="mt-4 font-semibold">Items:</h3>
+            <h3 className="mt-4 font-semibold text-amber-800">Items:</h3>
             <ul className="list-disc list-inside mb-4">
-                {selectedOrder.orderItems.map((i: OrderItem) => (
+              {selectedOrder.orderItems.map((i: OrderItem) => (
                 <li key={i.menu.pk}>
                   {i.menu.name} × {i.quantity} @ ${i.menu.price.toFixed(2)}
                 </li>
-                ))}
+              ))}
             </ul>
             <p>
               <strong>Rated:</strong> {selectedOrder.rated ? 'Yes' : 'No'}
@@ -364,6 +398,58 @@ const ActiveOrdersPage: React.FC = () => {
                 <> (Your rating: {selectedOrder.rating} ⭐)</>
               )}
             </p>
+            {selectedOrder.rated && selectedOrder.reviewText && (
+              <p>
+                <strong>Review:</strong> {selectedOrder.reviewText}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isReviewModalOpen && editingReview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-2xl font-bold text-red-700 mb-4">Rate Order</h2>
+            <div className="mb-4">
+              <label className="block text-amber-800 mb-2">Review Text</label>
+              <textarea
+                value={editingReview.reviewText || ''}
+                onChange={e => handleReviewChange('reviewText', e.target.value)}
+                className="w-full border border-amber-600 rounded px-3 py-2 focus:ring-2 focus:ring-orange-700"
+                rows={4}
+                placeholder="Write your review here..."
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-amber-800 mb-2">Rating (1-5)</label>
+              <select
+                value={editingReview.rating || 1}
+                onChange={e => handleReviewChange('rating', parseInt(e.target.value))}
+                className="w-full border border-amber-600 rounded px-3 py-2 focus:ring-2 focus:ring-orange-700"
+              >
+                {[1, 2, 3, 4, 5].map(num => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => handleRateOrder(editingReview.pk, editingReview.rating || 1, editingReview.reviewText || '')}
+                className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900"
+                disabled={!editingReview.reviewText}
+              >
+                Submit
+              </button>
+              <button
+                onClick={closeReviewModal}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
