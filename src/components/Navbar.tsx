@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface NavItem {
   to: string;
@@ -15,12 +17,14 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin-login', text: 'Admin Giriş' },
   ],
   customer: [
-    { to: '/customer/restaurants', text: 'Restoranlar',
+    {
+      to: '/customer/restaurants',
+      text: 'Restoranlar',
       subpages: [
         { to: '/customer/restaurants?favourite=true', text: 'Favori Restoranlar' },
         { to: '/customer/restaurants?favourite=false', text: 'Tüm Restoranlar' },
       ],
-     },
+    },
     {
       to: '/customer/active-orders',
       text: 'Siparişlerim',
@@ -54,11 +58,11 @@ const routes: Record<string, NavItem[]> = {
 
 const mapFromRoleToRoute = (role: string): string => {
   switch (role) {
-    case 'ROLE_CUSTOMER':   return 'customer';
+    case 'ROLE_CUSTOMER': return 'customer';
     case 'ROLE_RESTAURANT': return 'restaurant';
-    case 'ROLE_COURIER':    return 'courier';
-    case 'ROLE_ADMIN':      return 'admin';
-    default:                return 'guest';
+    case 'ROLE_COURIER': return 'courier';
+    case 'ROLE_ADMIN': return 'admin';
+    default: return 'guest';
   }
 };
 
@@ -69,6 +73,7 @@ const Navbar: React.FC = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [userName, setUserName] = useState<string>('');
+  const [currentMoney, setCurrentMoney] = useState<number | null>(null);
   const hideTimeout = useRef<number | null>(null);
 
   const linkClass = (active: boolean = false) =>
@@ -78,7 +83,7 @@ const Navbar: React.FC = () => {
   const subLinkClass =
     'block px-6 py-3 text-sm text-red-700 hover:text-red-700 hover:bg-orange-100 transition duration-150';
 
-  // Whenever you enter a trigger, clear any pending hide:
+  // Handle mouse enter to clear hide timeout
   const handleMouseEnter = (key: string) => {
     if (hideTimeout.current) {
       clearTimeout(hideTimeout.current);
@@ -87,26 +92,58 @@ const Navbar: React.FC = () => {
     setHovered(key);
   };
 
-  // When you leave, wait 200ms before hiding:
+  // Handle mouse leave to set hide timeout
   const handleMouseLeave = () => {
     hideTimeout.current = window.setTimeout(() => {
       setHovered(null);
     }, 200);
   };
 
+  // Fetch role and username
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
     setRole(savedRole ? mapFromRoleToRoute(savedRole) : 'guest');
+    setUserName(localStorage.getItem('userName') || 'Kullanıcı');
   }, [location]);
 
+  // Fetch current money for customer role
   useEffect(() => {
-    setUserName(localStorage.getItem('userName') || 'Kullanıcı');
+    if (role === 'customer') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Oturum açma hatası');
+        return;
+      }
+      axios
+        .get('http://localhost:8080/api/customer/current-money', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(res => {
+          // Response format: { code: 200, data: number, message: string, status: 200 }
+          if (res.data.code === 200 && typeof res.data.data === 'number') {
+            setCurrentMoney(res.data.data);
+          } else {
+            throw new Error('Invalid response format');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setCurrentMoney(null);
+          toast.error('Bakiye yüklenemedi');
+        });
+    } else {
+      setCurrentMoney(null); // Clear balance for non-customer roles
+    }
   }, [role]);
 
+  // Fetch cart items when cart is hovered
   useEffect(() => {
     if (role === 'customer' && hovered === 'cart') {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        toast.error('Oturum açma hatası');
+        return;
+      }
       axios
         .get('http://localhost:8080/api/customer/get-order', {
           headers: { Authorization: `Bearer ${token}` },
@@ -121,15 +158,22 @@ const Navbar: React.FC = () => {
             )
           );
         })
-        .catch(console.error);
+        .catch(err => {
+          console.error(err);
+          toast.error('Sepet yüklenemedi');
+        });
     }
   }, [hovered, role]);
 
   const handleLogout = async () => {
-    try { await axios.post('/api/auth/logout'); } catch (e) { console.error(e); }
-    finally {
+    try {
+      await axios.post('/api/auth/logout');
+    } catch (e) {
+      console.error(e);
+    } finally {
       localStorage.clear();
       setRole('guest');
+      setCurrentMoney(null);
       window.location.href = '/login';
     }
   };
@@ -212,7 +256,7 @@ const Navbar: React.FC = () => {
                         <span className="text-sm">{item.menu.name}</span>
                         <span className="text-sm text-red-700">
                           {item.quantity} x {item.menu.price} ={' '}
-                          {(item.menu.price * item.quantity).toFixed(2)} ₺
+                          {(item.menu.path * item.quantity).toFixed(2)} ₺
                         </span>
                       </div>
                     ))
@@ -240,6 +284,12 @@ const Navbar: React.FC = () => {
                   onMouseEnter={() => handleMouseEnter('user')}
                   onMouseLeave={handleMouseLeave}
                 >
+                  {/* Display current money for customer role */}
+                  {role === 'customer' && (
+                    <div className="px-6 py-3 text-sm text-red-700">
+                      Bakiye: {currentMoney !== null ? `${currentMoney.toFixed(2)} ₺` : 'Yükleniyor...'}
+                    </div>
+                  )}
                   {/* Account links */}
                   {['customer', 'restaurant', 'courier', 'admin'].map(r =>
                     role === r ? (
@@ -262,6 +312,7 @@ const Navbar: React.FC = () => {
           )}
         </div>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </nav>
   );
 };
