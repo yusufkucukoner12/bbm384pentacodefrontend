@@ -31,6 +31,15 @@ interface OrderDTO {
   totalPrice: number;
 }
 
+interface CourierDTO {
+  pk: number;
+  name: string;
+  phoneNumber: string;
+  profilePictureUrl: string | null;
+  available: boolean;
+  online: boolean;
+}
+
 const routes: Record<string, NavItem[]> = {
   guest: [
     { to: '/login', text: 'Giriş Yap' },
@@ -69,25 +78,29 @@ const routes: Record<string, NavItem[]> = {
     { to: '/restaurant/menu-management', text: 'Menü Yönetimi' },
     { to: '/restaurant/orders', text: 'Siparişler' },
     { to: '/restaurant/courier-management', text: 'Kurye Yönetimi' },
-    { to: '/restaurant/tickets', text: 'Destek Talepleri',
+    {
+      to: '/restaurant/tickets',
+      text: 'Destek Talepleri',
       subpages: [
         { to: '/restaurant/tickets?type=solved', text: 'Çözülmüş Talepler' },
         { to: '/restaurant/tickets?type=unresolved', text: 'Bekleyen Talepler' },
       ],
-     },
-    { to: '/restaurant/review-management', text: 'Review Yönetimi'}
+    },
+    { to: '/restaurant/review-management', text: 'Review Yönetimi' },
   ],
   courier: [
     { to: '/courier/account-management', text: 'Hesap Yönetimi' },
     { to: '/courier/assigned-orders', text: 'Atanan Siparişler' },
     { to: '/courier/idle-orders', text: 'Bekleyen Siparişler' },
     { to: '/courier/past-orders', text: 'Geçmiş Siparişler' },
-    { to: '/courier/tickets', text: 'Destek Talepleri',
+    {
+      to: '/courier/tickets',
+      text: 'Destek Talepleri',
       subpages: [
         { to: '/courier/tickets?type=solved', text: 'Çözülmüş Talepler' },
         { to: '/courier/tickets?type=unresolved', text: 'Bekleyen Talepler' },
       ],
-     },
+    },
     { to: '/courier/review-management', text: 'Review Yönetimi' },
   ],
   admin: [
@@ -96,11 +109,13 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin/customer-management', text: 'Müşteri Yönetimi' },
     { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
     { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
-    { to: '/admin/review-management', text: 'İnceleme Yönetimi', 
+    {
+      to: '/admin/review-management',
+      text: 'İnceleme Yönetimi',
       subpages: [
         { to: '/admin/review-management?courier=true', text: 'Kurye İncelemeleri' },
         { to: '/admin/review-management?courier=false', text: 'Restoran İncelemeleri' },
-      ]
+      ],
     },
     {
       to: '/admin/tickets',
@@ -116,11 +131,16 @@ const routes: Record<string, NavItem[]> = {
 
 const mapFromRoleToRoute = (role: string): string => {
   switch (role) {
-    case 'ROLE_CUSTOMER': return 'customer';
-    case 'ROLE_RESTAURANT': return 'restaurant';
-    case 'ROLE_COURIER': return 'courier';
-    case 'ROLE_ADMIN': return 'admin';
-    default: return 'guest';
+    case 'ROLE_CUSTOMER':
+      return 'customer';
+    case 'ROLE_RESTAURANT':
+      return 'restaurant';
+    case 'ROLE_COURIER':
+      return 'courier';
+    case 'ROLE_ADMIN':
+      return 'admin';
+    default:
+      return 'guest';
   }
 };
 
@@ -133,6 +153,7 @@ const Navbar: React.FC = () => {
   const [restaurantName, setRestaurantName] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [currentMoney, setCurrentMoney] = useState<number | null>(null);
+  const [courierStatus, setCourierStatus] = useState<boolean | null>(null);
   const hideTimeout = useRef<number | null>(null);
 
   const linkClass = (active: boolean = false) =>
@@ -158,7 +179,7 @@ const Navbar: React.FC = () => {
     }, 200);
   };
 
-  // Fetch role and username, reset cart for non-customer roles
+  // Fetch role, username, and courier status
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
     const newRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
@@ -168,6 +189,31 @@ const Navbar: React.FC = () => {
       setCartItems([]);
       setTotalPrice(0);
       setRestaurantName('');
+    }
+    if (newRole === 'courier') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Fetch initial courier status
+        axios
+          .get('http://localhost:8080/api/couriers/status', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then(res => {
+            if (typeof res.data.data?.available === 'boolean') {
+              setCourierStatus(res.data.data.available);
+            } else {
+              console.error('Invalid status response:', res.data);
+              setCourierStatus(null);
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching courier status:', err);
+            setCourierStatus(null);
+            toast.error('Kurye durumu yüklenemedi');
+          });
+      }
+    } else {
+      setCourierStatus(null);
     }
   }, [location]);
 
@@ -234,6 +280,43 @@ const Navbar: React.FC = () => {
     }
   }, [hovered, role]);
 
+  // Handle status toggle for courier
+  const handleStatusToggle = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Oturum açma hatası');
+      return;
+    }
+    const optimisticStatus = !courierStatus;
+    try {
+      // Optimistically update status
+      setCourierStatus(optimisticStatus);
+      const response = await axios.post(
+        'http://localhost:8080/api/couriers/update-status',
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const responseData: { message: string; status: number; data: CourierDTO } = response.data;
+      if (
+        response.status === 200 &&
+        responseData.message === 'Courier status updated successfully' &&
+        typeof responseData.data.available === 'boolean'
+      ) {
+        setCourierStatus(responseData.data.available);
+        toast.success('Kurye durumu güncellendi');
+      } else {
+        throw new Error('Unexpected response');
+      }
+    } catch (err: any) {
+      console.error('Error updating courier status:', err);
+      // Revert status on error
+      setCourierStatus(courierStatus);
+      toast.error(err.response?.data || 'Kurye durumu güncellenemedi');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await axios.post('/api/auth/logout');
@@ -246,6 +329,7 @@ const Navbar: React.FC = () => {
       setCartItems([]);
       setTotalPrice(0);
       setRestaurantName('');
+      setCourierStatus(null);
       window.location.href = '/login';
     }
   };
@@ -374,13 +458,30 @@ const Navbar: React.FC = () => {
               </span>
               {hovered === 'user' && (
                 <div
-                  className="absolute right-0 mt-2 w-40 bg-white border border-orange-200 shadow-lg rounded-md z-50"
+                  className="absolute right-0 mt-2 w-48 bg-white border border-orange-200 shadow-lg rounded-md z-50"
                   onMouseEnter={() => handleMouseEnter('user')}
                   onMouseLeave={handleMouseLeave}
                 >
                   {role === 'customer' && (
                     <div className="px-6 py-3 text-sm text-red-700">
                       Bakiye: {currentMoney !== null ? `${currentMoney.toFixed(2)} ₺` : 'Yükleniyor...'}
+                    </div>
+                  )}
+                  {role === 'courier' && (
+                    <div className="px-6 py-3 text-sm text-red-700">
+                      Durum:{' '}
+                      {courierStatus === null
+                        ? 'Yükleniyor...'
+                        : courierStatus
+                        ? 'Müsait'
+                        : 'Müsait Değil'}
+                      <button
+                        onClick={handleStatusToggle}
+                        className="block mt-2 w-full px-4 py-1 bg-amber-800 text-white text-center rounded hover:bg-amber-900 transition text-sm"
+                        disabled={courierStatus === null}
+                      >
+                        {courierStatus ? 'Müsaitliği Kaldır' : 'Müsait Ol'}
+                      </button>
                     </div>
                   )}
                   {['customer', 'restaurant', 'courier', 'admin'].map(r =>
