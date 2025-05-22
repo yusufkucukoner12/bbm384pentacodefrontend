@@ -5,6 +5,7 @@ import { GenericCardProps } from '../types/GenericCardProps';
 interface ExtendedGenericCardProps extends GenericCardProps {
   loading?: boolean;
   address?: string;
+  className?: string;
 }
 
 export default function GenericCard({
@@ -17,6 +18,7 @@ export default function GenericCard({
   children,
   address,
   loading = false,
+  className,
 }: ExtendedGenericCardProps) {
   return (
     <div

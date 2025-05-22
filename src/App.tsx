@@ -43,7 +43,11 @@ import ActiveOrdersPage from './pages/customer/ActiveOrdersPage';
 import SuccessRedirectPage from './pages/login-signup/SuccessRedirectPage';
 import TicketPage from './pages/TicketPage';
 import AdminTicketPage from './pages/AdminTicketPage';
+<<<<<<< Updated upstream
 import ResetPassword from './pages/login-signup/ResetPassword';
+=======
+import GeneralReviewPage from './pages/GeneralReviewPage';
+>>>>>>> Stashed changes
 
 
 const App: React.FC = () => {
@@ -90,6 +94,8 @@ const App: React.FC = () => {
           <Route path="/restaurant/orders" element={<Orders />} />
           <Route path="/restaurant/courier-management" element={<CourierManagementPage />} />
           <Route path="/restaurant/tickets" element={<TicketPage />} />
+          <Route path="/restaurant/review-management" element={<GeneralReviewPage/>} />
+
 
           {/* Restaurant */}
 
@@ -101,6 +107,8 @@ const App: React.FC = () => {
           <Route path="/courier/order-details" element={<OrderDetails />} />
           <Route path="/courier/past-orders" element={<PastOrders />} />
           <Route path="/courier/tickets" element={<TicketPage />} />
+          <Route path="/courier/review-management" element={<GeneralReviewPage/>} />
+
 
           {/* Customer */}
 

@@ -52,6 +52,7 @@ const routes: Record<string, NavItem[]> = {
       subpages: [
         { to: '/customer/active-orders?old=false', text: 'Aktif Siparişler' },
         { to: '/customer/active-orders?old=true', text: 'Geçmiş Siparişler' },
+        { to: '/customer/active-orders?failed=true', text: 'Başarısız Siparişler' },
         { to: '/customer/favorite-orders', text: 'Favori Siparişler' },
       ],
     },
@@ -68,14 +69,26 @@ const routes: Record<string, NavItem[]> = {
     { to: '/restaurant/menu-management', text: 'Menü Yönetimi' },
     { to: '/restaurant/orders', text: 'Siparişler' },
     { to: '/restaurant/courier-management', text: 'Kurye Yönetimi' },
-    { to: '/restaurant/tickets', text: 'Destek Talepleri' },
+    { to: '/restaurant/tickets', text: 'Destek Talepleri',
+      subpages: [
+        { to: '/restaurant/tickets?type=solved', text: 'Çözülmüş Talepler' },
+        { to: '/restaurant/tickets?type=unresolved', text: 'Bekleyen Talepler' },
+      ],
+     },
+    { to: '/restaurant/review-management', text: 'Review Yönetimi'}
   ],
   courier: [
     { to: '/courier/account-management', text: 'Hesap Yönetimi' },
     { to: '/courier/assigned-orders', text: 'Atanan Siparişler' },
     { to: '/courier/idle-orders', text: 'Bekleyen Siparişler' },
     { to: '/courier/past-orders', text: 'Geçmiş Siparişler' },
-    { to: '/courier/tickets', text: 'Destek Talepleri' },
+    { to: '/courier/tickets', text: 'Destek Talepleri',
+      subpages: [
+        { to: '/courier/tickets?type=solved', text: 'Çözülmüş Talepler' },
+        { to: '/courier/tickets?type=unresolved', text: 'Bekleyen Talepler' },
+      ],
+     },
+    { to: '/courier/review-management', text: 'Review Yönetimi' },
   ],
   admin: [
     { to: '/admin/main', text: 'Ana Sayfa' },
@@ -83,7 +96,12 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin/customer-management', text: 'Müşteri Yönetimi' },
     { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
     { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
-    { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
+    { to: '/admin/review-management', text: 'İnceleme Yönetimi', 
+      subpages: [
+        { to: '/admin/review-management?courier=true', text: 'Kurye İncelemeleri' },
+        { to: '/admin/review-management?courier=false', text: 'Restoran İncelemeleri' },
+      ]
+    },
     {
       to: '/admin/tickets',
       text: 'Destek Talepleri',
