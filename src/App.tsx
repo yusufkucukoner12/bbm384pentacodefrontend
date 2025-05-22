@@ -41,6 +41,8 @@ import RestaurantManagementPage from './pages/admin/RestaurantManagementPage';
 import ReviewManagementPage from './pages/admin/ReviewManagementPage';
 import ActiveOrdersPage from './pages/customer/ActiveOrdersPage';
 import SuccessRedirectPage from './pages/login-signup/SuccessRedirectPage';
+import TicketPage from './pages/TicketPage';
+import AdminTicketPage from './pages/AdminTicketPage';
 
 
 const App: React.FC = () => {
@@ -78,12 +80,16 @@ const App: React.FC = () => {
           <Route path="/customer/account-management" element={<AccountManagement />} />
           <Route path="/customer/active-orders" element={<ActiveOrdersPage />} />
           <Route path="/customer/favorite-orders" element={<FavoriteOrdersPage />} />
+          <Route path="/customer/tickets" element={<TicketPage />} />
 
           {/* Restaurant */}
           <Route path="/restaurant/account-management" element={<RestaurantAccountManagementPage />} />
           <Route path="/restaurant/menu-management" element={<MenuManagementPage />} />
           <Route path="/restaurant/orders" element={<Orders />} />
           <Route path="/restaurant/courier-management" element={<CourierManagementPage />} />
+          <Route path="/restaurant/tickets" element={<TicketPage />} />
+
+          {/* Restaurant */}
 
 
           {/* Courier */}
@@ -92,6 +98,9 @@ const App: React.FC = () => {
           <Route path="/courier/idle-orders" element={<IdleOrders />} />
           <Route path="/courier/order-details" element={<OrderDetails />} />
           <Route path="/courier/past-orders" element={<PastOrders />} />
+          <Route path="/courier/tickets" element={<TicketPage />} />
+
+          {/* Customer */}
 
           {/* Admin */}
           <Route path="/admin/main" element={<MainAdminPage />} />
@@ -100,6 +109,7 @@ const App: React.FC = () => {
           <Route path="/admin/delivery-management" element={<DeliveryManagementPage />} />
           <Route path="/admin/restaurant-management" element={<RestaurantManagementPage />} />
           <Route path="/admin/review-management" element={<ReviewManagementPage />} />
+          <Route path="/admin/tickets" element={<AdminTicketPage />} />
 
 
           {/* 404 Page */}

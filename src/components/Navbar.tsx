@@ -34,17 +34,20 @@ const routes: Record<string, NavItem[]> = {
         { to: '/customer/favorite-orders', text: 'Favori Siparişler' },
       ],
     },
+    { to: '/customer/tickets', text: 'Destek Talepleri' },
   ],
   restaurant: [
     { to: '/restaurant/menu-management', text: 'Menü Yönetimi' },
     { to: '/restaurant/orders', text: 'Siparişler' },
     { to: '/restaurant/courier-management', text: 'Kurye Yönetimi' },
+    { to: '/restaurant/tickets', text: 'Destek Talepleri' },
   ],
   courier: [
     { to: '/courier/account-management', text: 'Hesap Yönetimi' },
     { to: '/courier/assigned-orders', text: 'Atanan Siparişler' },
     { to: '/courier/idle-orders', text: 'Bekleyen Siparişler' },
     { to: '/courier/past-orders', text: 'Geçmiş Siparişler' },
+    { to: '/courier/tickets', text: 'Destek Talepleri' },
   ],
   admin: [
     { to: '/admin/main', text: 'Ana Sayfa' },
@@ -53,6 +56,16 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
     { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
     { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
+    // admin tickets and subpages for customer, courier and restaurant
+    {
+      to: '/admin/tickets',
+      text: 'Destek Talepleri',
+      subpages: [
+        { to: '/admin/tickets?type=customer', text: 'Müşteri Talepleri' },
+        { to: '/admin/tickets?type=courier', text: 'Kurye Talepleri' },
+        { to: '/admin/tickets?type=restaurant', text: 'Restoran Talepleri' },
+      ],
+    },
   ],
 };
 

@@ -12,6 +12,7 @@ interface Review {
 
 export default function ReviewPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,22 +30,33 @@ export default function ReviewPage() {
         setLoading(true);
         const response = await axios.get('http://localhost:8080/api/order/get-all-reviews', {
           headers: { Authorization: `Bearer ${token}` },
-          params: { search: searchQuery || undefined },
         });
         const fetchedReviews = Array.isArray(response.data.data) ? response.data.data : [];
         setReviews(fetchedReviews);
+        setFilteredReviews(fetchedReviews); // Initialize filteredReviews with all reviews
         setCurrentPage(1);
       } catch (err) {
         console.error('Error loading reviews:', err);
         setError('Failed to load reviews.');
         toast.error('Failed to load reviews.');
         setReviews([]);
+        setFilteredReviews([]);
       } finally {
         setLoading(false);
       }
     };
     loadReviews();
-  }, [searchQuery, token]);
+  }, [token]);
+
+  // Filter reviews on the frontend based on searchQuery
+  useEffect(() => {
+    const lowerQuery = searchQuery.toLowerCase();
+    const filtered = reviews.filter((review) =>
+      review.reviewText.toLowerCase().includes(lowerQuery)
+    );
+    setFilteredReviews(filtered);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [searchQuery, reviews]);
 
   // Delete a review with confirmation
   const handleDelete = async (pk: number) => {
@@ -58,6 +70,7 @@ export default function ReviewPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setReviews(reviews.filter((review) => review.pk !== pk));
+        setFilteredReviews(filteredReviews.filter((review) => review.pk !== pk));
         toast.success('Review deleted successfully.');
       } catch (err) {
         console.error('Error deleting review:', err);
@@ -86,6 +99,11 @@ export default function ReviewPage() {
       );
       setReviews(
         reviews.map((review) =>
+          review.pk === editingReview.pk ? { ...editingReview } : review
+        )
+      );
+      setFilteredReviews(
+        filteredReviews.map((review) =>
           review.pk === editingReview.pk ? { ...editingReview } : review
         )
       );
@@ -121,7 +139,7 @@ export default function ReviewPage() {
     }
   };
 
-  const paginatedReviews = reviews.slice(
+  const paginatedReviews = filteredReviews.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -171,7 +189,7 @@ export default function ReviewPage() {
 
         {loading ? (
           <SkeletonLoader />
-        ) : reviews.length === 0 ? (
+        ) : filteredReviews.length === 0 ? (
           <div className="text-center py-12">
             <img
               src="https://via.placeholder.com/200?text=No+Reviews"
@@ -280,8 +298,8 @@ export default function ReviewPage() {
             <div className="flex justify-between items-center mt-6">
               <p className="text-amber-800">
                 Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                {Math.min(currentPage * itemsPerPage, reviews.length)} of {reviews.length}{' '}
-                reviews
+                {Math.min(currentPage * itemsPerPage, filteredReviews.length)} of{' '}
+                {filteredReviews.length} reviews
               </p>
               <div className="flex space-x-2">
                 <button
@@ -294,10 +312,10 @@ export default function ReviewPage() {
                 <button
                   onClick={() =>
                     setCurrentPage((prev) =>
-                      Math.min(prev + 1, Math.ceil(reviews.length / itemsPerPage))
+                      Math.min(prev + 1, Math.ceil(filteredReviews.length / itemsPerPage))
                     )
                   }
-                  disabled={currentPage === Math.ceil(reviews.length / itemsPerPage)}
+                  disabled={currentPage === Math.ceil(filteredReviews.length / itemsPerPage)}
                   className="px-3 py-1 bg-amber-800 text-white rounded disabled:bg-gray-300"
                 >
                   Next
