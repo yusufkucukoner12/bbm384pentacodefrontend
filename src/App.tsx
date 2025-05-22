@@ -43,6 +43,7 @@ import ActiveOrdersPage from './pages/customer/ActiveOrdersPage';
 import SuccessRedirectPage from './pages/login-signup/SuccessRedirectPage';
 import TicketPage from './pages/TicketPage';
 import AdminTicketPage from './pages/AdminTicketPage';
+import ResetPassword from './pages/login-signup/ResetPassword';
 
 
 const App: React.FC = () => {
@@ -58,7 +59,7 @@ const App: React.FC = () => {
           {/* Login/Signup */}
         
           <Route path="/login" element={<Login />} />
-          <Route path="/login/resetpassword" element={<Login />} />
+          <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/restaurant/login" element={<Login />} />
           <Route path="/courier/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
