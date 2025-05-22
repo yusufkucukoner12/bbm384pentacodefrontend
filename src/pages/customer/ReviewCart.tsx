@@ -98,7 +98,7 @@ const ReviewCartPage: React.FC = () => {
 
   const placeOrder = async () => {
     setPlacingOrder(true);
-    setError('');
+    setError(''); // Clear previous errors
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -114,15 +114,20 @@ const ReviewCartPage: React.FC = () => {
         },
       });
     } catch (err) {
-      console.error(err);
-      setError('Failed to place order');
-      toast.error('Failed to place order');
+      // Extract the specific error message from the backend
+      let errorMessage = 'Failed to place order';
+      if (axios.isAxiosError(err) && err.response?.data) {
+        // Assuming backend returns error message as a string
+        errorMessage = typeof err.response.data === 'string' ? err.response.data : err.response.data.message || errorMessage;
+      }
+      setError(errorMessage);
+      toast.error(errorMessage); // Display the specific error message
     } finally {
       setPlacingOrder(false);
     }
   };
 
-  // --- New: cost breakdown calculations ---
+  // --- Cost breakdown calculations ---
   const calculateSubtotal = () => {
     return orderItems.reduce((sum, item) => sum + item.menu.price * item.quantity, 0);
   };
