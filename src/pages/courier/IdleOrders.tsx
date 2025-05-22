@@ -14,30 +14,31 @@ export default function IdleOrders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
+  const fetchOrders = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/order/courier/orders', {
+        params: { accept: false, past: false, searchQuery, statuses: selectedStatuses.join(',') },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
+        ...order,
+        searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
+      }));
+      setOrders(ordersWithSearch);
+      setFilteredOrders(ordersWithSearch);
+    } catch (err) {
+      setError('Failed to fetch orders');
+      toast.error('Failed to fetch orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get('http://localhost:8080/api/order/courier/orders', {
-          params: { accept: false, past: false, searchQuery, statuses: selectedStatuses.join(',') },
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        });
-        const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
-          ...order,
-          searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
-        }));
-        setOrders(ordersWithSearch);
-        setFilteredOrders(ordersWithSearch);
-      } catch (err) {
-        setError('Failed to fetch orders');
-        toast.error('Failed to fetch orders');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrders();
   }, [searchQuery, selectedStatuses]);
 
-  const handleRespondToAssignment = async (orderId: number, status: 'IN_TRANSIT' | 'REJECTED') => {
+  const handleRespondToAssignment = async (orderId: number, status: 'IN_TRANSIT' | 'READY_FOR_PICKUP') => {
     try {
       const response = await axios.post(
         `http://localhost:8080/api/couriers/orders/${orderId}/respond`,
@@ -47,11 +48,8 @@ export default function IdleOrders() {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.pk === orderId ? { ...order, status: OrderStatusEnum[status] } : order
-        )
-      );
+      // Sayfayı güncellemek için fetchOrders'ı çağır
+      await fetchOrders();
       toast.success(response.data.message || `Order ${status === 'IN_TRANSIT' ? 'accepted' : 'rejected'}`);
     } catch (err) {
       setError('Failed to respond to the order');
@@ -146,7 +144,7 @@ export default function IdleOrders() {
                           Accept
                         </button>
                         <button
-                          onClick={() => handleRespondToAssignment(order.pk, 'REJECTED')}
+                          onClick={() => handleRespondToAssignment(order.pk, 'READY_FOR_PICKUP')}
                           className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
                         >
                           Reject
