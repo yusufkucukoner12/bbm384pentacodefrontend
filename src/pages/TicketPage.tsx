@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { SkeletonLoader } from '../components/restaurants/SkeletonLoader';
+import { useLocation } from 'react-router-dom';
 
 interface Text {
   text: string;
@@ -25,15 +26,24 @@ const TicketPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const token = localStorage.getItem('token');
+  const location = useLocation();
 
-  // Fetch all tickets
+  // Fetch all tickets based on URL query parameter
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:8080/api/auth/get-tickets', {
+        // Extract 'type' from URL query (e.g., ?type=solved)
+        const queryParams = new URLSearchParams(location.search);
+        const type = queryParams.get('type');
+
+        // Map 'type' to 'status' parameter
+        const config = {
           headers: { Authorization: `Bearer ${token}` },
-        });
+          params: type ? { status: type === 'solved' ? 'resolved' : 'unresolved' } : {},
+        };
+
+        const response = await axios.get('http://localhost:8080/api/auth/get-tickets', config);
         const fetchedTickets = Array.isArray(response.data.data) ? response.data.data : [];
         setTickets(fetchedTickets);
       } catch (err: any) {
@@ -52,7 +62,7 @@ const TicketPage: React.FC = () => {
       toast.error('Please log in to view tickets.');
       setLoading(false);
     }
-  }, [token]);
+  }, [token, location.search]);
 
   // Fetch ticket chat when a ticket is selected
   useEffect(() => {
@@ -90,10 +100,14 @@ const TicketPage: React.FC = () => {
         }
       );
       setNewSubject('');
-      // Refresh tickets list
-      const response = await axios.get('http://localhost:8080/api/auth/get-tickets', {
+      // Refresh tickets list with current filter
+      const queryParams = new URLSearchParams(location.search);
+      const type = queryParams.get('type');
+      const config = {
         headers: { Authorization: `Bearer ${token}` },
-      });
+        params: type ? { status: type === 'solved' ? 'resolved' : 'unresolved' } : {},
+      };
+      const response = await axios.get('http://localhost:8080/api/auth/get-tickets', config);
       setTickets(Array.isArray(response.data.data) ? response.data.data : []);
       toast.success('Ticket created successfully.');
     } catch (err: any) {
@@ -159,34 +173,44 @@ const TicketPage: React.FC = () => {
     return conversation.sort((a, b) => a.index - b.index);
   };
 
+  // Determine page title and empty state message based on type
+  const queryParams = new URLSearchParams(location.search);
+  const type = queryParams.get('type');
+  const isResolvedView = type === 'solved';
+  const isAllView = !type;
+  const pageTitle = isResolvedView ? 'Resolved Support Tickets' : isAllView ? 'All Support Tickets' : 'Open Support Tickets';
+  const emptyMessage = isResolvedView ? 'No resolved tickets found.' : isAllView ? 'No tickets found.' : 'No open tickets found.';
+
   return (
     <div className="min-h-screen bg-orange-50">
       <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold text-red-700 mb-6">Support Tickets</h1>
+        <h1 className="text-3xl font-bold text-red-700 mb-6">{pageTitle}</h1>
 
         {/* Error Message */}
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        {/* Create Ticket Form */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-amber-800 mb-2">Create New Ticket</h2>
-          <div className="flex items-center gap-4">
-            <input
-              type="text"
-              placeholder="Enter ticket subject..."
-              value={newSubject}
-              onChange={(e) => setNewSubject(e.target.value)}
-              className="w-full max-w-md border border-amber-600 rounded px-3 py-2 focus:ring-2 focus:ring-orange-700 text-amber-800 placeholder-amber-400"
-            />
-            <button
-              onClick={handleCreateTicket}
-              className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900 transition"
-              disabled={!token || !newSubject.trim()}
-            >
-              Create Ticket
-            </button>
+        {/* Create Ticket Form (only shown in unresolved or all view) */}
+        {(isAllView || type === 'unsolved') && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-amber-800 mb-2">Create New Ticket</h2>
+            <div className="flex items-center gap-4">
+              <input
+                type="text"
+                placeholder="Enter ticket subject..."
+                value={newSubject}
+                onChange={(e) => setNewSubject(e.target.value)}
+                className="w-full max-w-md border border-amber-600 rounded px-3 py-2 focus:ring-2 focus:ring-orange-700 text-amber-800 placeholder-amber-400"
+              />
+              <button
+                onClick={handleCreateTicket}
+                className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900 transition"
+                disabled={!token || !newSubject.trim()}
+              >
+                Create Ticket
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Ticket List */}
         {loading ? (
@@ -198,7 +222,7 @@ const TicketPage: React.FC = () => {
               alt="No tickets"
               className="mx-auto mb-4"
             />
-            <p className="text-amber-800 text-lg">No tickets found.</p>
+            <p className="text-amber-800 text-lg">{emptyMessage}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

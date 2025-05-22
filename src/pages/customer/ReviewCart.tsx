@@ -16,6 +16,20 @@ interface OrderItem {
   quantity: number;
 }
 
+interface RestaurantDTO {
+  pk: number;
+  name: string;
+}
+
+interface OrderDTO {
+  pk: number;
+  restaurant: RestaurantDTO;
+  orderItems: OrderItem[];
+  status: string;
+  totalPrice: number;
+  createdAt: string;
+}
+
 interface OrderData {
   data: {
     orderItems: OrderItem[];
@@ -23,10 +37,18 @@ interface OrderData {
   };
 }
 
+interface ApiResponse<T> {
+  message: string;
+  status: number;
+  data: T;
+}
+
 const ReviewCartPage: React.FC = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<OrderItem[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant>();
+  const [favoriteRestaurants, setFavoriteRestaurants] = useState<RestaurantDTO[]>([]);
+  const [favoriteOrders, setFavoriteOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +74,28 @@ const ReviewCartPage: React.FC = () => {
       toast.error('Failed to load cart');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // Fetch favorite restaurants
+      const restaurantRes = await axios.get<ApiResponse<RestaurantDTO[]>>(
+        'http://localhost:8080/api/customer/get-favorite-restaurants',
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFavoriteRestaurants(restaurantRes.data.data || []);
+
+      // Fetch favorite orders
+      const orderRes = await axios.get<ApiResponse<OrderDTO[]>>(
+        'http://localhost:8080/api/customer/get-favorite-orders',
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFavoriteOrders(orderRes.data.data || []);
+    } catch (err) {
+      setError('Failed to load favorites');
+      toast.error('Failed to load favorites');
     }
   };
 
@@ -98,7 +142,7 @@ const ReviewCartPage: React.FC = () => {
 
   const placeOrder = async () => {
     setPlacingOrder(true);
-    setError(''); // Clear previous errors
+    setError('');
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -114,27 +158,56 @@ const ReviewCartPage: React.FC = () => {
         },
       });
     } catch (err) {
-      // Extract the specific error message from the backend
       let errorMessage = 'Failed to place order';
       if (axios.isAxiosError(err) && err.response?.data) {
-        // Assuming backend returns error message as a string
         errorMessage = typeof err.response.data === 'string' ? err.response.data : err.response.data.message || errorMessage;
       }
       setError(errorMessage);
-      toast.error(errorMessage); // Display the specific error message
+      toast.error(errorMessage);
     } finally {
       setPlacingOrder(false);
     }
   };
 
-  // --- Cost breakdown calculations ---
+  const handleReorder = async (orderPk: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8080/api/order/re-order/${orderPk}`,
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchOrder(); // Refresh cart to show reordered items
+      toast.success('Order successfully created');
+      navigate('/customer/review-cart');
+    } catch (err) {
+      setError('Failed to reorder');
+      toast.error('Failed to reorder');
+    }
+  };
+
+  const handleRemoveFromFavorites = async (orderPk: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8080/api/customer/remove-from-favorite-orders/${orderPk}`,
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Order removed from favorites');
+      setFavoriteOrders((prev) => prev.filter((order) => order.pk !== orderPk));
+    } catch (err) {
+      setError('Failed to remove order from favorites');
+      toast.error('Failed to remove order from favorites');
+    }
+  };
+
   const calculateSubtotal = () => {
     return orderItems.reduce((sum, item) => sum + item.menu.price * item.quantity, 0);
   };
 
   const deliveryFee = Number(restaurant?.deliveryFee ?? 0);
   const calculateTotal = () => calculateSubtotal() + deliveryFee;
-  // ----------------------------------------
 
   const filterItems = (items: OrderItem[], query: string) => {
     if (!query) {
@@ -150,6 +223,12 @@ const ReviewCartPage: React.FC = () => {
   useEffect(() => {
     fetchOrder();
   }, []);
+
+  useEffect(() => {
+    if (filteredItems.length === 0 && !loading) {
+      fetchFavorites();
+    }
+  }, [filteredItems, loading]);
 
   useEffect(() => {
     filterItems(orderItems, searchQuery);
@@ -224,6 +303,71 @@ const ReviewCartPage: React.FC = () => {
             >
               Browse Restaurants
             </button>
+
+            {/* Favorite Restaurants */}
+            <div className="mt-8">
+              <h2 className="text-2xl font-semibold text-amber-800 mb-4">Favorite Restaurants</h2>
+              {favoriteRestaurants.length === 0 ? (
+                <p className="text-amber-800">No favorite restaurants found.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {favoriteRestaurants.map((resto) => (
+                    <div
+                      key={resto.pk}
+                      className="bg-white shadow-md rounded-lg p-5 flex justify-between items-center"
+                    >
+                      <p className="text-amber-800 text-lg">{resto.name}</p>
+                      <button
+                        onClick={() => navigate(`/customer/restaurants/${resto.pk}`)}
+                        className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900 transition"
+                      >
+                        Browse
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Favorite Orders */}
+            <div className="mt-8">
+              <h2 className="text-2xl font-semibold text-amber-800 mb-4">Favorite Orders</h2>
+              {favoriteOrders.length === 0 ? (
+                <p className="text-amber-800">No favorite orders found.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-6">
+                  {favoriteOrders.map((order) => (
+                    <div
+                      key={order.pk}
+                      className="bg-white shadow-md rounded-lg p-5 hover:shadow-xl cursor-pointer"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <h2 className="text-xl font-medium text-amber-800">Order #{order.pk}</h2>
+                        <p className="text-sm text-amber-600">
+                          {new Date(order.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <p>Status: <strong>{order.status}</strong></p>
+                      <p>Total: <strong>${order.totalPrice.toFixed(2)}</strong></p>
+                      <div className="mt-4 flex flex-col space-y-4">
+                        <button
+                          onClick={() => handleReorder(order.pk)}
+                          className="px-4 py-2 bg-amber-800 text-white rounded hover:bg-amber-900 transition"
+                        >
+                          Reorder
+                        </button>
+                        <button
+                          onClick={() => handleRemoveFromFavorites(order.pk)}
+                          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                        >
+                          Remove from Favorites
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <>

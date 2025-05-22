@@ -34,7 +34,12 @@ const routes: Record<string, NavItem[]> = {
         { to: '/customer/favorite-orders', text: 'Favori Siparişler' },
       ],
     },
-    { to: '/customer/tickets', text: 'Destek Talepleri' },
+    { to: '/customer/tickets', text: 'Destek Talepleri', 
+      subpages: [
+        { to: '/customer/tickets?type=solved', text: 'Çözülmüş Talepler' },
+        { to: '/customer/tickets?type=unresolved', text: 'Bekleyen Talepler' },
+      ]
+    },
   ],
   restaurant: [
     { to: '/restaurant/menu-management', text: 'Menü Yönetimi' },
