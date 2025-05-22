@@ -9,8 +9,7 @@ import { User } from '../../types/User';
 const CustomerManagementPage: React.FC = () => {
   const [customers, setCustomers] = useState<User[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<User[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [banStatus, setBanStatus] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [newCustomer, setNewCustomer] = useState({
@@ -30,7 +29,6 @@ const CustomerManagementPage: React.FC = () => {
       { name: 'password', placeholder: 'Password', type: 'password' },
       { name: 'customerPhoneNumber', placeholder: 'Phone Number', type: 'text' },
       { name: 'customerAddress', placeholder: 'Address', type: 'text' }
-   
   ];
 
   const navigate = useNavigate();
@@ -43,10 +41,29 @@ const CustomerManagementPage: React.FC = () => {
         const { data } = await axios.get('http://localhost:8080/api/admin/customer/all', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("Fetched customers:", data.data);
-
         setCustomers(data.data);
         setFilteredCustomers(data.data);
+
+        // Fetch ban status for each customer
+        const banStatusPromises = data.data.map(async (customer: User) => {
+          try {
+            const res = await axios.get<{ data: boolean }>(
+              `http://localhost:8080/api/admin/getban/${customer.pk}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return { id: customer.pk, isBanned: res.data.data };
+          } catch {
+            return { id: customer.pk, isBanned: false };
+          }
+        });
+
+        const banStatuses = await Promise.all(banStatusPromises);
+        const banStatusMap = banStatuses.reduce((acc, { id, isBanned }) => {
+          acc[id] = isBanned;
+          return acc;
+        }, {} as { [key: number]: boolean });
+        setBanStatus(banStatusMap);
+
       } catch {
         toast.error('Failed to load customers');
       } finally {
@@ -55,7 +72,7 @@ const CustomerManagementPage: React.FC = () => {
     };
     fetchCustomers();
   }, []);
-  
+
   useEffect(() => {
     const lowerQuery = searchQuery.toLowerCase();
     setFilteredCustomers(
@@ -75,8 +92,6 @@ const CustomerManagementPage: React.FC = () => {
       const { data } = await axios.get(`http://localhost:8080/api/admin/customer/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Customer details:', data.data);
-      // navigate(`/admin/customer/${id}`);
     } catch {
       toast.error('Failed to fetch customer details');
     }
@@ -86,20 +101,34 @@ const CustomerManagementPage: React.FC = () => {
     navigate(`/admin/customer/edit/${id}`);
   };
 
-  const handleBan = async (userId: number) => {
+  const handleBanToggle = async (userId: number) => {
     try {
-      console.log('Banning customer with ID:', userId);
       const token = localStorage.getItem('token');
-      await axios.put(
-        `http://localhost:8080/api/admin/ban/${userId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Customer banned');
-      setCustomers((prev) => prev.filter((c) => c.pk !== userId));
-      setFilteredCustomers((prev) => prev.filter((c) => c.pk !== userId));
+      if (!token) throw new Error('Token bulunamadı');
+
+      if (banStatus[userId]) {
+        // Unban the customer
+        await axios.put(
+          `http://localhost:8080/api/admin/unban/${userId}`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success('Customer unbanned');
+        setBanStatus((prev) => ({ ...prev, [userId]: false }));
+      } else {
+        // Ban the customer
+        await axios.put(
+          `http://localhost:8080/api/admin/ban/${userId}`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success('Customer banned');
+        setBanStatus((prev) => ({ ...prev, [userId]: true }));
+        // setCustomers((prev) => prev.filter((c) => c.pk !== userId));
+        // setFilteredCustomers((prev) => prev.filter((c) => c.pk !== userId));
+      }
     } catch {
-      toast.error('Failed to ban customer');
+      toast.error(`Failed to ${banStatus[userId] ? 'unban' : 'ban'} customer`);
     }
   };
 
@@ -112,6 +141,11 @@ const CustomerManagementPage: React.FC = () => {
       toast.success('Customer deleted');
       setCustomers((prev) => prev.filter((c) => c.pk !== userId));
       setFilteredCustomers((prev) => prev.filter((c) => c.pk !== userId));
+      setBanStatus((prev) => {
+        const newBanStatus = { ...prev };
+        delete newBanStatus[userId];
+        return newBanStatus;
+      });
     } catch {
       toast.error('Failed to delete customer');
     }
@@ -131,9 +165,8 @@ const CustomerManagementPage: React.FC = () => {
       const created = data.data;
       setCustomers((prev) => [...prev, created]);
       setFilteredCustomers((prev) => [...prev, created]);
+      setBanStatus((prev) => ({ ...prev, [created.pk]: false }));
       setNewCustomer({name: '', username: '',  email: '', password: '', authorities: ['ROLE_CUSTOMER'], customerPhoneNumber: '', customerAddress: ''});
-   
-      
     } catch {
       toast.error('Failed to create customer');
     }
@@ -194,7 +227,6 @@ const CustomerManagementPage: React.FC = () => {
                 >
                   <div className="text-lg font-semibold text-orange-800">{customer.name}</div>
                   <div className="text-sm text-orange-600">{customer.email}</div>
-                  {/*<div className="text-sm text-orange-500 mb-2">{customer.address}</div>*/}
 
                   <div className="flex gap-2 flex-wrap">
                     <button
@@ -210,10 +242,10 @@ const CustomerManagementPage: React.FC = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleBan(customer.pk)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                      onClick={() => handleBanToggle(customer.pk)}
+                      className={`px-3 py-1 ${banStatus[customer.pk] ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white rounded text-sm`}
                     >
-                      Ban
+                      {banStatus[customer.pk] ? 'Unban' : 'Ban'}
                     </button>
                     <button
                       onClick={() => handleDelete(customer.pk)}

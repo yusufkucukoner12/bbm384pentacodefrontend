@@ -18,23 +18,30 @@ export default function AdminOrderControlPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [couriers, setCouriers] = useState<CourierDTO[]>([]);
+  const [statusLoading, setStatusLoading] = useState<number | null>(null); // Track which order is being updated
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get('http://localhost:8080/api/admin/order/all',
-          {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-          }
-        );
-        const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
-          ...order,
-          searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
-        }));
+        const response = await axios.get('http://localhost:8080/api/admin/order/all', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const ordersWithSearch = response.data.data.map((order: OrderDTO) => {
+          // Safely handle null or undefined fields
+          const name = order.name || '';
+          const restaurantName = order.restaurant?.name || '';
+          const orderItems = order.orderItems?.map((item) => item.menu?.name || '')?.join(' ') || '';
+          
+          return {
+            ...order,
+            searchString: `${name} ${restaurantName} ${orderItems}`.trim(),
+          };
+        });
         setOrders(ordersWithSearch);
         setFilteredOrders(ordersWithSearch);
       } catch (err) {
+        console.log(err);
         setError('Failed to load orders.');
       } finally {
         setLoading(false);
@@ -55,7 +62,10 @@ export default function AdminOrderControlPage() {
   const openCourierModal = async (orderId: number) => {
     setSelectedOrderId(orderId);
     try {
-      const response = await axios.get('http://localhost:8080/api/couriers/available');
+      const token = localStorage.getItem("token");
+      const response = await axios.get('http://localhost:8080/api/couriers/available', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setCouriers(response.data.data);
       setIsModalOpen(true);
     } catch (err) {
@@ -65,8 +75,11 @@ export default function AdminOrderControlPage() {
 
   const assignCourier = async (orderId: number, courierId: number) => {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.post(
-        `http://localhost:8080/api/admin/orders/${orderId}/assign-courier/${courierId}`
+        `http://localhost:8080/api/admin/orders/${orderId}/assign-courier/${courierId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const updatedOrder = response.data.data;
       setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
@@ -78,14 +91,36 @@ export default function AdminOrderControlPage() {
 
   const unassignCourier = async (orderId: number) => {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.post(
-        `http://localhost:8080/api/admin/orders/${orderId}/unassign-courier`
+        `http://localhost:8080/api/admin/orders/${orderId}/unassign-courier`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const updatedOrder = response.data.data;
       setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
       setIsModalOpen(false);
     } catch (err) {
       setError('Failed to unassign courier.');
+    }
+  };
+
+  // Handler for changing order status
+  const changeOrderStatus = async (orderId: number, newStatus: OrderStatusEnum) => {
+    setStatusLoading(orderId);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `http://localhost:8080/api/admin/orders/${orderId}/status`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const updatedOrder = response.data.data;
+      setOrders(orders.map((o) => (o.pk === orderId ? { ...o, ...updatedOrder } : o)));
+    } catch (err) {
+      setError('Failed to change order status.');
+    } finally {
+      setStatusLoading(null);
     }
   };
 
@@ -108,6 +143,8 @@ export default function AdminOrderControlPage() {
             orders={filteredOrders} 
             loading={loading} 
             openCourierModal={openCourierModal} 
+            onChangeStatus={changeOrderStatus}
+            statusLoading={statusLoading}
           />
         </div>
         
