@@ -4,5 +4,6 @@ export interface CourierDTO {
     phoneNumber: string;
     isAvailable: boolean;
     isOnline: boolean; 
+    email?: string;    // Added - from creation form
     profilePictureUrl?: string;
   }

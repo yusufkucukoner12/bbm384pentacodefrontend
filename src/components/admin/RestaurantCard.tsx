@@ -1,93 +1,109 @@
+// src/components/admin/RestaurantCard.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Restaurant } from '../../types/Restaurant';
+import { toast } from 'react-toastify';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
-  onDetails: (pk: number) => void;
-  onEdit: (restaurant: Restaurant) => void;
-  onDelete: (pk: number) => void;
-  onSuspend: () => Promise<void>;
-  onUnsuspend: () => Promise<void>;
+  onManage: (restaurant: Restaurant) => void; // Triggers the modal in parent
+  onDelete: (restaurantId: number) => Promise<void>;
+  onSuspend: (restaurantId: number) => Promise<void>;
+  onUnsuspend: (restaurantId: number) => Promise<void>;
 }
 
-const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onDetails, onEdit, onDelete, onSuspend, onUnsuspend }) => {
+const RestaurantCard: React.FC<RestaurantCardProps> = ({
+  restaurant,
+  onManage,
+  onDelete,
+  onSuspend,
+  onUnsuspend,
+}) => {
   const [isBanned, setIsBanned] = useState<boolean | null>(null);
 
   useEffect(() => {
-    console.log(restaurant.pk); 
     const fetchBanStatus = async () => {
       try {
         const token = localStorage.getItem('token');
-        console.log(token);
-        if (!token) throw new Error('Token bulunamadı');
+        if (!token) {
+          console.error('Token not found for fetching ban status');
+          setIsBanned(false);
+          return;
+        }
         const res = await axios.get<{ data: boolean }>(
           `http://localhost:8080/api/admin/getban/${restaurant.pk}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsBanned(res.data.data);
-      } catch {
+      } catch (error) {
+        console.error('Error fetching ban status for ' + restaurant.name + ':', error);
         setIsBanned(false);
       }
     };
     fetchBanStatus();
-  }, [restaurant.pk]);
+  }, [restaurant.pk, restaurant.name]);
 
   const handleBanToggle = async () => {
     try {
       if (isBanned) {
-        await onUnsuspend();
+        await onUnsuspend(restaurant.pk);
         setIsBanned(false);
+        toast.success(`${restaurant.name} has been unbanned.`);
       } else {
-        await onSuspend();
+        await onSuspend(restaurant.pk);
         setIsBanned(true);
+        toast.success(`${restaurant.name} has been banned.`);
       }
     } catch (error) {
+      toast.error(`Failed to update ban status for ${restaurant.name}.`);
       console.error('Ban toggle error:', error);
     }
   };
+  
+  const defaultImageUrl = 'https://as2.ftcdn.net/v2/jpg/01/12/60/35/1000_F_112603585_SNY1XNd6JJgMxR8DKFJGTvWQ6STPPKEi.jpg';
 
   if (isBanned === null) {
     return (
-      <div className="bg-white p-4 rounded-xl shadow-md flex justify-between items-center">
-        <p className="text-orange-600">Durum kontrol ediliyor...</p>
+      <div className="bg-white p-4 rounded-xl shadow-lg flex justify-center items-center min-h-[200px]">
+        <p className="text-orange-600 animate-pulse">Checking status...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md flex justify-between items-center">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col justify-between">
       <div>
-        <h3 className="text-lg font-semibold text-orange-800">{restaurant.name}</h3>
-        <p className="text-orange-600"><strong>E-posta:</strong> {restaurant.email || 'Yok'}</p>
-        <p className="text-orange-600"><strong>Telefon:</strong> {restaurant.phoneNumber || 'Yok'}</p>
-        <p className="text-orange-600"><strong>Adres:</strong> {restaurant.address || 'Yok'}</p>
-        <p className="text-orange-600"><strong>Açıklama:</strong> {restaurant.description || 'Yok'}</p>
+        <img
+          src={restaurant.imageUrl || defaultImageUrl}
+          alt={restaurant.name}
+          className="w-full h-48 object-cover"
+          onError={(e) => (e.currentTarget.src = defaultImageUrl)}
+        />
+        <div className="p-4">
+          <h3 className="text-xl font-bold text-orange-800 mb-1 truncate" title={restaurant.name}>{restaurant.name}</h3>
+          <p className="text-sm text-orange-600 mb-1 truncate" title={restaurant.foodType || ''}>{restaurant.foodType || 'Variety of foods'}</p>
+          <p className="text-xs text-gray-500 truncate" title={restaurant.address || ''}>{restaurant.address || 'Address not available'}</p>
+        </div>
       </div>
-      <div className="space-x-2">
+
+      <div className="px-4 pb-4 pt-3 border-t border-orange-100 flex flex-wrap gap-2">
         <button
-          onClick={() => onDetails(restaurant.pk)}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={() => onManage(restaurant)}
+          className="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors min-w-[80px]"
         >
-          Details
-        </button>
-        <button
-          onClick={() => onEdit(restaurant)}
-          className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-        >
-          Edit
+          Manage
         </button>
         <button
           onClick={handleBanToggle}
-          className={`px-3 py-1 text-white rounded ${
-            isBanned ? 'bg-orange-500 hover:bg-orange-600' : 'bg-red-500 hover:bg-red-600'
+          className={`flex-1 px-3 py-2 text-white text-sm rounded-md transition-colors min-w-[70px] ${
+            isBanned ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600'
           }`}
         >
           {isBanned ? 'Unban' : 'Ban'}
         </button>
         <button
           onClick={() => onDelete(restaurant.pk)}
-          className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+          className="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors min-w-[70px]"
         >
           Delete
         </button>

@@ -121,8 +121,16 @@ const Login: React.FC = () => {
       }
 
     } catch (err) {
-      const axiosError = err as AxiosError;
-      setError('Login failed. Incorrect username or password.');
+      const axiosError = err as AxiosError<any>;
+      // Default error message
+      let errorMessage = 'Login failed. Incorrect username or password.';
+
+      // If the error has a response and a message, use it
+      if (axiosError.response && axiosError.response.data && axiosError.response.data.message) {
+        errorMessage = axiosError.response.data.message;
+      }
+
+      setError(errorMessage);
       console.error(axiosError);
     }
   };
