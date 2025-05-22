@@ -14,26 +14,27 @@ export default function AcceptedOrders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
+  const fetchOrders = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/order/courier/orders`, {
+        params: { accept: true, past: false, searchQuery, statuses: selectedStatuses.join(',') },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
+        ...order,
+        searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
+      }));
+      setOrders(ordersWithSearch);
+      setFilteredOrders(ordersWithSearch);
+    } catch (err) {
+      setError('Failed to fetch accepted orders');
+      toast.error('Failed to fetch accepted orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8080/api/order/courier/orders`, {
-          params: { accept: true, past: false, searchQuery, statuses: selectedStatuses.join(',') },
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        });
-        const ordersWithSearch = response.data.data.map((order: OrderDTO) => ({
-          ...order,
-          searchString: `${order.name} ${order.restaurant.name} ${order.orderItems.map((item) => item.menu.name).join(' ')}`,
-        }));
-        setOrders(ordersWithSearch);
-        setFilteredOrders(ordersWithSearch);
-      } catch (err) {
-        setError('Failed to fetch accepted orders');
-        toast.error('Failed to fetch accepted orders');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrders();
   }, [searchQuery, selectedStatuses]);
 
@@ -47,11 +48,8 @@ export default function AcceptedOrders() {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.pk === orderId ? { ...order, status: OrderStatusEnum.DELIVERED } : order
-        )
-      );
+      // Sayfayı güncellemek için fetchOrders'ı çağır
+      await fetchOrders();
       toast.success(response.data.message || 'Order marked as delivered');
     } catch (err) {
       setError('Failed to finish the order');

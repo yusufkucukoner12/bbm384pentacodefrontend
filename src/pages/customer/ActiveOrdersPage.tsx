@@ -361,11 +361,11 @@ const ActiveOrdersPage: React.FC = () => {
 
       {selectedOrder && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[10000]"
           onClick={() => setSelectedOrder(null)}
         >
           <div
-            className="bg-white rounded-lg max-w-xl w-full p-6"
+            className="bg-white rounded-lg max-w-xl w-full p-6 z-[10001]"
             onClick={e => e.stopPropagation()}
           >
             <button
