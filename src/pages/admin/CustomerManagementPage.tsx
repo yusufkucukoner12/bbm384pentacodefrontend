@@ -30,6 +30,7 @@ const CustomerManagementPage: React.FC = () => {
       { name: 'password', placeholder: 'Password', type: 'password' },
       { name: 'customerPhoneNumber', placeholder: 'Phone Number', type: 'text' },
       { name: 'customerAddress', placeholder: 'Address', type: 'text' }
+   
   ];
   const editInputFields = [
     { name: 'name', placeholder: 'Your Full Name', type: 'text' },
@@ -48,29 +49,10 @@ const CustomerManagementPage: React.FC = () => {
         const { data } = await axios.get('http://localhost:8080/api/admin/customer/all', {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("Fetched customers:", data.data);
+
         setCustomers(data.data);
         setFilteredCustomers(data.data);
-
-        // Fetch ban status for each customer
-        const banStatusPromises = data.data.map(async (customer: User) => {
-          try {
-            const res = await axios.get<{ data: boolean }>(
-              `http://localhost:8080/api/admin/getban/${customer.pk}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            return { id: customer.pk, isBanned: res.data.data };
-          } catch {
-            return { id: customer.pk, isBanned: false };
-          }
-        });
-
-        const banStatuses = await Promise.all(banStatusPromises);
-        const banStatusMap = banStatuses.reduce((acc, { id, isBanned }) => {
-          acc[id] = isBanned;
-          return acc;
-        }, {} as { [key: number]: boolean });
-        setBanStatus(banStatusMap);
-
       } catch {
         toast.error('Failed to load customers');
       } finally {
@@ -79,7 +61,7 @@ const CustomerManagementPage: React.FC = () => {
     };
     fetchCustomers();
   }, []);
-
+  
   useEffect(() => {
     const lowerQuery = searchQuery.toLowerCase();
     setFilteredCustomers(
@@ -99,6 +81,8 @@ const CustomerManagementPage: React.FC = () => {
       const { data } = await axios.get(`http://localhost:8080/api/admin/customer`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('Customer details:', data.data);
+      // navigate(`/admin/customer/${id}`);
     } catch {
       toast.error('Failed to fetch customer details');
     }
@@ -149,7 +133,7 @@ const handleEdit = async (e: React.FormEvent) => {
       setCustomers((prev) => prev.filter((c) => c.pk !== pk));
       setFilteredCustomers((prev) => prev.filter((c) => c.pk !== pk));
     } catch {
-      toast.error(`Failed to ${banStatus[userId] ? 'unban' : 'ban'} customer`);
+      toast.error('Failed to ban customer');
     }
   };
 
@@ -181,8 +165,9 @@ const handleEdit = async (e: React.FormEvent) => {
       const created = data.data;
       setCustomers((prev) => [...prev, created]);
       setFilteredCustomers((prev) => [...prev, created]);
-      setBanStatus((prev) => ({ ...prev, [created.pk]: false }));
       setNewCustomer({name: '', username: '',  email: '', password: '', authorities: ['ROLE_CUSTOMER'], customerPhoneNumber: '', customerAddress: ''});
+   
+      
     } catch {
       toast.error('Failed to create customer');
     }
