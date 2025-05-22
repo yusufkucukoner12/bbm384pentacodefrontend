@@ -1,4 +1,3 @@
-// components/pages/admin/AdminOrderControlPage.tsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { OrderDTO, OrderStatusEnum } from '../../types/Order';
@@ -18,21 +17,19 @@ export default function AdminOrderControlPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [couriers, setCouriers] = useState<CourierDTO[]>([]);
-  const [statusLoading, setStatusLoading] = useState<number | null>(null); // Track which order is being updated
+  const [statusLoading, setStatusLoading] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:8080/api/admin/order/all', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const ordersWithSearch = response.data.data.map((order: OrderDTO) => {
-          // Safely handle null or undefined fields
           const name = order.name || '';
           const restaurantName = order.restaurant?.name || '';
-          const orderItems = order.orderItems?.map((item) => item.menu?.name || '')?.join(' ') || '';
-          
+          const orderItems = order.orderItems?.map((item) => item.menu?.name || '').join(' ') || '';
           return {
             ...order,
             searchString: `${name} ${restaurantName} ${orderItems}`.trim(),
@@ -41,7 +38,7 @@ export default function AdminOrderControlPage() {
         setOrders(ordersWithSearch);
         setFilteredOrders(ordersWithSearch);
       } catch (err) {
-        console.log(err);
+        console.error('Error loading orders:', err);
         setError('Failed to load orders.');
       } finally {
         setLoading(false);
@@ -62,7 +59,7 @@ export default function AdminOrderControlPage() {
   const openCourierModal = async (orderId: number) => {
     setSelectedOrderId(orderId);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/couriers/available', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -75,7 +72,7 @@ export default function AdminOrderControlPage() {
 
   const assignCourier = async (orderId: number, courierId: number) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const response = await axios.post(
         `http://localhost:8080/api/admin/orders/${orderId}/assign-courier/${courierId}`,
         {},
@@ -91,7 +88,7 @@ export default function AdminOrderControlPage() {
 
   const unassignCourier = async (orderId: number) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const response = await axios.post(
         `http://localhost:8080/api/admin/orders/${orderId}/unassign-courier`,
         {},
@@ -105,11 +102,10 @@ export default function AdminOrderControlPage() {
     }
   };
 
-  // Handler for changing order status
   const changeOrderStatus = async (orderId: number, newStatus: OrderStatusEnum) => {
     setStatusLoading(orderId);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const response = await axios.put(
         `http://localhost:8080/api/admin/orders/${orderId}/status`,
         { status: newStatus },
@@ -126,46 +122,43 @@ export default function AdminOrderControlPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setSelectedOrderId(null);
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50">
-      <div className="flex">
-        <div className="w-4/5 p-4">
-          <OrderSearch 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery} 
-          />
-          
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          
-          <OrderList 
-            orders={filteredOrders} 
-            loading={loading} 
-            openCourierModal={openCourierModal} 
-            onChangeStatus={changeOrderStatus}
-            statusLoading={statusLoading}
-          />
+    <div className="min-h-screen bg-orange-50">
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold text-amber-800 mb-6">Order Management</h1>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-4/5">
+            <OrderSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            {error && <p className="text-red-500 mb-4 font-medium">{error}</p>}
+            <OrderList
+              orders={filteredOrders}
+              loading={loading}
+              openCourierModal={openCourierModal}
+              onChangeStatus={changeOrderStatus}
+              statusLoading={statusLoading}
+            />
+          </div>
+          <div className="lg:w-1/5">
+            <OrderStatusFilter
+              selectedStatuses={selectedStatuses}
+              setSelectedStatuses={setSelectedStatuses}
+            />
+          </div>
         </div>
-        
-        <div className="w-1/5 p-4">
-          <OrderStatusFilter 
-            selectedStatuses={selectedStatuses} 
-            setSelectedStatuses={setSelectedStatuses} 
+        {isModalOpen && selectedOrderId && (
+          <AssignCourierModal
+            orderId={selectedOrderId}
+            orders={orders}
+            couriers={couriers}
+            onAssign={assignCourier}
+            onUnassign={unassignCourier}
+            onClose={handleCloseModal}
           />
-        </div>
+        )}
       </div>
-      
-      {isModalOpen && selectedOrderId && (
-        <AssignCourierModal 
-          orderId={selectedOrderId}
-          orders={orders}
-          couriers={couriers}
-          onAssign={assignCourier}
-          onUnassign={unassignCourier}
-          onClose={handleCloseModal}
-        />
-      )}
     </div>
   );
 }

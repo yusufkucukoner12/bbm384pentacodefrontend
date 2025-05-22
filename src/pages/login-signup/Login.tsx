@@ -138,7 +138,7 @@ const Login: React.FC = () => {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       <Background />
-      <div className="relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <div className="relative z-10 bg-orange-50 p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold mb-4 text-center">
           {role.charAt(0).toUpperCase() + role.slice(1)} Log In
         </h1>
