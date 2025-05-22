@@ -63,7 +63,7 @@ const AdminLogin: React.FC = () => {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       <Background />
-      <div className="relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <div className="relative z-10 bg-orange-50 p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold mb-4 text-center">Admin Login</h1>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
