@@ -4,13 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Customer } from '../../types/Customer';
-import { User } from '../../types/User';
+import CustomerCard from '../../components/admin/CustomerCard';
 
 const CustomerManagementPage: React.FC = () => {
-  const [customers, setCustomers] = useState<User[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<User[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [newCustomer, setNewCustomer] = useState({
@@ -22,6 +20,8 @@ const CustomerManagementPage: React.FC = () => {
     customerPhoneNumber: '',
     customerAddress: ''
   });
+  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const inputFields = [
       { name: 'username', placeholder: 'Username', type: 'text' },
@@ -31,6 +31,12 @@ const CustomerManagementPage: React.FC = () => {
       { name: 'customerPhoneNumber', placeholder: 'Phone Number', type: 'text' },
       { name: 'customerAddress', placeholder: 'Address', type: 'text' }
    
+  ];
+  const editInputFields = [
+    { name: 'name', placeholder: 'Your Full Name', type: 'text' },
+    { name: 'email', placeholder: 'Email', type: 'email' },
+    { name: 'phoneNumber', placeholder: 'Phone Number', type: 'text' },
+    { name: 'address', placeholder: 'Address', type: 'text' },
   ];
 
   const navigate = useNavigate();
@@ -72,7 +78,7 @@ const CustomerManagementPage: React.FC = () => {
   const handleDetails = async (id: number) => {
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.get(`http://localhost:8080/api/admin/customer/${id}`, {
+      const { data } = await axios.get(`http://localhost:8080/api/admin/customer`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Customer details:', data.data);
@@ -82,36 +88,64 @@ const CustomerManagementPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (id: number) => {
-    navigate(`/admin/customer/edit/${id}`);
+const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCustomer) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const { data } = await axios.put(`/api/admin/customer/edit/${editCustomer.pk}`, {
+          name: editCustomer.name,
+          email: editCustomer.email,
+          phoneNumber: editCustomer.phoneNumber,
+          address: editCustomer.address,
+          longitude: editCustomer.longitude,
+          latitude: editCustomer.latitude,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Customer updated successfully');
+      const updated = data.data;
+      setCustomers((prev) =>
+        prev.map((c) => (c.pk === updated.pk ? updated : c))
+      );
+      setFilteredCustomers((prev) =>
+        prev.map((c) => (c.pk === updated.pk ? updated : c))
+      );
+      setIsEditModalOpen(false);
+      setEditCustomer(null);
+    } catch {
+      toast.error('Failed to update customer');
+    }
   };
 
-  const handleBan = async (userId: number) => {
+  const handleBan = async (pk: number) => {
     try {
-      console.log('Banning customer with ID:', userId);
+      console.log('Banning customer with ID:', pk);
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:8080/api/admin/ban/${userId}`,
+        `http://localhost:8080/api/admin/ban/${pk}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Customer banned');
-      setCustomers((prev) => prev.filter((c) => c.pk !== userId));
-      setFilteredCustomers((prev) => prev.filter((c) => c.pk !== userId));
+      setCustomers((prev) => prev.filter((c) => c.pk !== pk));
+      setFilteredCustomers((prev) => prev.filter((c) => c.pk !== pk));
     } catch {
       toast.error('Failed to ban customer');
     }
   };
 
-  const handleDelete = async (userId: number) => {
+  const handleDelete = async (pk: number) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/admin/customer/${userId}`, {
+      await axios.delete(`http://localhost:8080/api/admin/customer/${pk}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Customer deleted');
-      setCustomers((prev) => prev.filter((c) => c.pk !== userId));
-      setFilteredCustomers((prev) => prev.filter((c) => c.pk !== userId));
+      setCustomers((prev) => prev.filter((c) => c.pk !== pk));
+      setFilteredCustomers((prev) => prev.filter((c) => c.pk !== pk));
     } catch {
       toast.error('Failed to delete customer');
     }
@@ -137,6 +171,16 @@ const CustomerManagementPage: React.FC = () => {
     } catch {
       toast.error('Failed to create customer');
     }
+  };
+
+  const openEditModal = (customer: Customer) => {
+    setEditCustomer(customer);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditCustomer(null);
   };
 
   return (
@@ -188,45 +232,67 @@ const CustomerManagementPage: React.FC = () => {
               <p className="text-orange-600">No customers found.</p>
             ) : (
               filteredCustomers.map((customer) => (
-                <div
+                <CustomerCard
                   key={customer.pk}
-                  className="bg-white rounded-xl shadow p-4 hover:bg-orange-100 transition-all duration-200"
-                >
-                  <div className="text-lg font-semibold text-orange-800">{customer.name}</div>
-                  <div className="text-sm text-orange-600">{customer.email}</div>
-                  {/*<div className="text-sm text-orange-500 mb-2">{customer.address}</div>*/}
-
-                  <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={() => handleDetails(customer.pk)}
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-                    >
-                      Details
-                    </button>
-                    <button
-                      onClick={() => handleEdit(customer.pk)}
-                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleBan(customer.pk)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                    >
-                      Ban
-                    </button>
-                    <button
-                      onClick={() => handleDelete(customer.pk)}
-                      className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                  customer={customer}
+                  onDetails={handleDetails}
+                  onEdit={openEditModal}
+                  onBan={handleBan}
+                  onDelete={handleDelete} onUnban={function (pk: number): void {
+                    throw new Error('Function not implemented.');
+                  } }                />
               ))
             )}
           </div>
         )}
+        {/* Edit Customer Modal */}
+        {isEditModalOpen && editCustomer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+              <h2 className="text-xl font-semibold text-orange-800 mb-4">Edit Customer</h2>
+              <form onSubmit={handleEdit}>
+                <div className="grid grid-cols-1 gap-4">
+                  {editInputFields.map(({ placeholder, name, type }) => (
+                    <input
+                      key={name}
+                      type={type}
+                      placeholder={placeholder}
+                      required
+                      className="p-2 border border-orange-300 rounded"
+                      value={(editCustomer as any)[name] || ''}
+                      onChange={(e) =>
+                        setEditCustomer((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                [name]: type === 'number' ? parseFloat(e.target.value) : e.target.value,
+                              }
+                            : prev
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={closeEditModal}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         <ToastContainer />
       </div>
     </div>
