@@ -43,11 +43,9 @@ import ActiveOrdersPage from './pages/customer/ActiveOrdersPage';
 import SuccessRedirectPage from './pages/login-signup/SuccessRedirectPage';
 import TicketPage from './pages/TicketPage';
 import AdminTicketPage from './pages/AdminTicketPage';
-<<<<<<< Updated upstream
 import ResetPassword from './pages/login-signup/ResetPassword';
-=======
 import GeneralReviewPage from './pages/GeneralReviewPage';
->>>>>>> Stashed changes
+
 
 
 const App: React.FC = () => {
