@@ -13,9 +13,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSuspend, 
   const [isBanned, setIsBanned] = useState<boolean | null>(null);
 
   useEffect(() => {
+    console.log(restaurant.pk); 
     const fetchBanStatus = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('token');
+        console.log(token);
         if (!token) throw new Error('Token bulunamadı');
         const res = await axios.get<{ data: boolean }>(
           `http://localhost:8080/api/admin/getban/${restaurant.pk}`,
