@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Restaurant } from '../../types/Restaurant';
+import { Customer } from '../../types/Customer';
 
-interface RestaurantCardProps {
-  restaurant: Restaurant;
+interface CustomerCardProps {
+  customer: Customer;
   onDetails: (pk: number) => void;
-  onEdit: (restaurant: Restaurant) => void;
+  onEdit: (customer: Customer) => void;
+  onBan: (pk: number) => void;
+  onUnban: (pk: number) => void;
   onDelete: (pk: number) => void;
-  onSuspend: () => Promise<void>;
-  onUnsuspend: () => Promise<void>;
 }
 
-const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onDetails, onEdit, onDelete, onSuspend, onUnsuspend }) => {
+const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onDetails, onEdit, onBan, onUnban, onDelete }) => {
   const [isBanned, setIsBanned] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchBanStatus = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('token');
         if (!token) throw new Error('Token bulunamadı');
         const res = await axios.get<{ data: boolean }>(
-          `http://localhost:8080/api/admin/getban/${restaurant.pk}`,
+          `http://localhost:8080/api/admin/getban/${customer.pk}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsBanned(res.data.data);
@@ -29,15 +29,15 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onDetails, 
       }
     };
     fetchBanStatus();
-  }, [restaurant.pk]);
+  }, [customer.pk]);
 
   const handleBanToggle = async () => {
     try {
       if (isBanned) {
-        await onUnsuspend();
+        await onUnban(customer.pk);
         setIsBanned(false);
       } else {
-        await onSuspend();
+        await onBan(customer.pk);
         setIsBanned(true);
       }
     } catch (error) {
@@ -56,21 +56,20 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onDetails, 
   return (
     <div className="bg-white p-4 rounded-xl shadow-md flex justify-between items-center">
       <div>
-        <h3 className="text-lg font-semibold text-orange-800">{restaurant.name}</h3>
-        <p className="text-orange-600"><strong>E-posta:</strong> {restaurant.email || 'Yok'}</p>
-        <p className="text-orange-600"><strong>Telefon:</strong> {restaurant.phoneNumber || 'Yok'}</p>
-        <p className="text-orange-600"><strong>Adres:</strong> {restaurant.address || 'Yok'}</p>
-        <p className="text-orange-600"><strong>Açıklama:</strong> {restaurant.description || 'Yok'}</p>
+        <h3 className="text-lg font-semibold text-orange-800">{customer.name}</h3>
+        <p className="text-orange-600">{customer.email}</p>
+        <p className="text-orange-600">{customer.phoneNumber}</p>
+        <p className="text-orange-600">{customer.address}</p>
       </div>
       <div className="space-x-2">
         <button
-          onClick={() => onDetails(restaurant.pk)}
+          onClick={() => onDetails(customer.pk)}
           className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Details
         </button>
         <button
-          onClick={() => onEdit(restaurant)}
+          onClick={() => onEdit(customer)}
           className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
         >
           Edit
@@ -84,7 +83,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onDetails, 
           {isBanned ? 'Unban' : 'Ban'}
         </button>
         <button
-          onClick={() => onDelete(restaurant.pk)}
+          onClick={() => onDelete(customer.pk)}
           className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
         >
           Delete
@@ -94,4 +93,4 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onDetails, 
   );
 };
 
-export default RestaurantCard;
+export default CustomerCard;

@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import RestaurantCard from '../../components/admin/RestaurantCard';
 import { Restaurant } from '../../types/Restaurant';
 import { User } from '../../types/User';
+import { rest } from 'lodash';
 
 export default function AdminRestaurantManagementPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -16,9 +17,9 @@ export default function AdminRestaurantManagementPage() {
     username: '',
     email: '',
     password: '',
-    restaurantAddress: '',
-    restaurantPhoneNumber: '',
-    restaurantDescription: '',
+    address: '',
+    phoneNumber: '',
+    description: '',
     foodType: '',
     openingHours: '',
     closingHours: '',
@@ -30,7 +31,8 @@ export default function AdminRestaurantManagementPage() {
     customerPhoneNumber: '',
     customerAddress: ''
   });
-
+  const [editRestaurant, setEditRestaurant] = useState<Restaurant | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -59,9 +61,9 @@ export default function AdminRestaurantManagementPage() {
       { name: 'name', placeholder: 'Your Full Name', type: 'text' },
       { name: 'email', placeholder: 'Email', type: 'email' },
       { name: 'password', placeholder: 'Password', type: 'password' },
-      { name: 'restaurantAddress', placeholder: 'Restaurant Address', type: 'text' },
-      { name: 'restaurantPhoneNumber', placeholder: 'Restaurant Phone Number', type: 'text' },
-      { name: 'restaurantDescription', placeholder: 'Restaurant Description', type: 'text' },
+      { name: 'address', placeholder: 'Restaurant Address', type: 'text' },
+      { name: 'phoneNumber', placeholder: 'Restaurant Phone Number', type: 'text' },
+      { name: 'description', placeholder: 'Restaurant Description', type: 'text' },
       { name: 'foodType', placeholder: 'Food Type', type: 'text' },
       { name: 'openingHours', placeholder: 'Opening Hours', type: 'text' },
       { name: 'closingHours', placeholder: 'Closing Hours', type: 'text' },
@@ -71,6 +73,22 @@ export default function AdminRestaurantManagementPage() {
       { name: 'maxOrderAmount', placeholder: 'Maximum Order Amount (TL)', type: 'number' }
    
   ];
+
+  const editInputFields = [
+    { name: 'name', placeholder: 'Restaurant Name', type: 'text' },
+    { name: 'email', placeholder: 'Email', type: 'email' },
+    { name: 'address', placeholder: 'Restaurant Address', type: 'text' },
+    { name: 'phoneNumber', placeholder: 'Restaurant Phone Number', type: 'text' },
+    { name: 'description', placeholder: 'Restaurant Description', type: 'text' },
+    { name: 'foodType', placeholder: 'Food Type', type: 'text' },
+    { name: 'openingHours', placeholder: 'Opening Hours', type: 'text' },
+    { name: 'closingHours', placeholder: 'Closing Hours', type: 'text' },
+    { name: 'deliveryTime', placeholder: 'Delivery Time (minutes)', type: 'number' },
+    { name: 'deliveryFee', placeholder: 'Delivery Fee (TL)', type: 'number' },
+    { name: 'minOrderAmount', placeholder: 'Minimum Order Amount (TL)', type: 'number' },
+    { name: 'maxOrderAmount', placeholder: 'Maximum Order Amount (TL)', type: 'number' }
+  ];
+
   const suspendRestaurant = async (restaurantId: number) => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Token bulunamadı');
@@ -107,9 +125,9 @@ export default function AdminRestaurantManagementPage() {
                           username: '',
                           email: '',
                           password: '',
-                          restaurantAddress: '',
-                          restaurantPhoneNumber: '',
-                          restaurantDescription: '',
+                          address: '',
+                          phoneNumber: '',
+                          description: '',
                           foodType: '',
                           openingHours: '',
                           closingHours: '',
@@ -124,6 +142,53 @@ export default function AdminRestaurantManagementPage() {
     } catch {
       toast.error('Failed to create customer');
     }
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRestaurant) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const { data } = await axios.put(`/api/admin/restaurant/edit/${editRestaurant.pk}`, {
+          name: editRestaurant.name,
+          email: editRestaurant.email,
+          address: editRestaurant.address,
+          phoneNumber: editRestaurant.phoneNumber,
+          description: editRestaurant.description,
+          foodType: editRestaurant.foodType,
+          openingHours: editRestaurant.openingHours,
+          closingHours: editRestaurant.closingHours,
+          deliveryTime: editRestaurant.deliveryTime,
+          deliveryFee: editRestaurant.deliveryFee,
+          minOrderAmount: editRestaurant.minOrderAmount,
+          maxOrderAmount: editRestaurant.maxOrderAmount,        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Customer updated successfully');
+      const updated = data.data;
+      setRestaurants((prev) =>
+        prev.map((c) => (c.pk === updated.pk ? updated : c))
+      );
+      setFilteredCustomers((prev) =>
+        prev.map((c) => (c.pk === updated.pk ? updated : c))
+      );
+      setIsEditModalOpen(false);
+      setEditRestaurant(null);
+    } catch {
+      toast.error('Failed to update customer');
+    }
+  };
+
+  const openEditModal = (restaurant: Restaurant) => {
+    setEditRestaurant(restaurant);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditRestaurant(null);
   };
 
   return (
@@ -175,12 +240,64 @@ export default function AdminRestaurantManagementPage() {
                 key={r.pk}
                 restaurant={r}
                 onSuspend={() => suspendRestaurant(r.pk)}
-                onUnsuspend={() => unsuspendRestaurant(r.pk)}
-              />
+                onUnsuspend={() => unsuspendRestaurant(r.pk)} onDetails={function (pk: number): void {
+                  throw new Error('Function not implemented.');
+                } } onEdit={openEditModal}
+                 onDelete={function (pk: number): void {
+                  throw new Error('Function not implemented.');
+                } }              />
             ))}
           </div>
         )}
       </div>
+      {/* Edit Restaurant Modal */}
+        {isEditModalOpen && editRestaurant && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+              <h2 className="text-xl font-semibold text-orange-800 mb-4">Edit Restaurant</h2>
+              <form onSubmit={handleEdit}>
+                <div className="grid grid-cols-1 gap-4">
+                  {editInputFields.map(({ placeholder, name, type }) => (
+                    <input
+                      key={name}
+                      type={type}
+                      placeholder={placeholder}
+                      required
+                      className="p-2 border border-orange-300 rounded"
+                      value={(editRestaurant as any)[name] || ''}
+                      onChange={(e) =>
+                        setEditRestaurant((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                [name]: type === 'number' ? parseFloat(e.target.value) : e.target.value,
+                              }
+                            : prev
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={closeEditModal}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </div>
   );
