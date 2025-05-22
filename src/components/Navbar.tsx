@@ -10,6 +10,27 @@ interface NavItem {
   subpages?: NavItem[];
 }
 
+interface MenuDTO {
+  pk: number;
+  name: string;
+  price: number;
+}
+
+interface OrderItemDTO {
+  menu: MenuDTO;
+  quantity: number;
+}
+
+interface RestaurantDTO {
+  name: string;
+}
+
+interface OrderDTO {
+  orderItems: OrderItemDTO[];
+  restaurant?: RestaurantDTO;
+  totalPrice: number;
+}
+
 const routes: Record<string, NavItem[]> = {
   guest: [
     { to: '/login', text: 'Giriş Yap' },
@@ -34,11 +55,13 @@ const routes: Record<string, NavItem[]> = {
         { to: '/customer/favorite-orders', text: 'Favori Siparişler' },
       ],
     },
-    { to: '/customer/tickets', text: 'Destek Talepleri', 
+    {
+      to: '/customer/tickets',
+      text: 'Destek Talepleri',
       subpages: [
         { to: '/customer/tickets?type=solved', text: 'Çözülmüş Talepler' },
         { to: '/customer/tickets?type=unresolved', text: 'Bekleyen Talepler' },
-      ]
+      ],
     },
   ],
   restaurant: [
@@ -61,7 +84,6 @@ const routes: Record<string, NavItem[]> = {
     { to: '/admin/delivery-management', text: 'Teslimat Yönetimi' },
     { to: '/admin/restaurant-management', text: 'Restoran Yönetimi' },
     { to: '/admin/review-management', text: 'İnceleme Yönetimi' },
-    // admin tickets and subpages for customer, courier and restaurant
     {
       to: '/admin/tickets',
       text: 'Destek Talepleri',
@@ -88,8 +110,9 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const [role, setRole] = useState<string>('guest');
   const [hovered, setHovered] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<OrderItemDTO[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [currentMoney, setCurrentMoney] = useState<number | null>(null);
   const hideTimeout = useRef<number | null>(null);
@@ -117,11 +140,17 @@ const Navbar: React.FC = () => {
     }, 200);
   };
 
-  // Fetch role and username
+  // Fetch role and username, reset cart for non-customer roles
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
-    setRole(savedRole ? mapFromRoleToRoute(savedRole) : 'guest');
+    const newRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
+    setRole(newRole);
     setUserName(localStorage.getItem('userName') || 'Kullanıcı');
+    if (newRole !== 'customer') {
+      setCartItems([]);
+      setTotalPrice(0);
+      setRestaurantName('');
+    }
   }, [location]);
 
   // Fetch current money for customer role
@@ -137,7 +166,6 @@ const Navbar: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(res => {
-          // Response format: { code: 200, data: number, message: string, status: 200 }
           if (res.data.code === 200 && typeof res.data.data === 'number') {
             setCurrentMoney(res.data.data);
           } else {
@@ -150,7 +178,7 @@ const Navbar: React.FC = () => {
           toast.error('Bakiye yüklenemedi');
         });
     } else {
-      setCurrentMoney(null); // Clear balance for non-customer roles
+      setCurrentMoney(null);
     }
   }, [role]);
 
@@ -167,11 +195,13 @@ const Navbar: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(res => {
-          const items = res.data.data.orderItems || [];
+          const order: OrderDTO = res.data.data || {};
+          const items = order.orderItems || [];
           setCartItems(items);
+          setRestaurantName(order.restaurant?.name || 'Restoran');
           setTotalPrice(
             items.reduce(
-              (sum: number, it: any) => sum + (it.menu.price ?? 0) * (it.quantity ?? 0),
+              (sum: number, item: OrderItemDTO) => sum + (item.menu.price || 0) * (item.quantity || 0),
               0
             )
           );
@@ -179,6 +209,9 @@ const Navbar: React.FC = () => {
         .catch(err => {
           console.error(err);
           toast.error('Sepet yüklenemedi');
+          setCartItems([]);
+          setRestaurantName('');
+          setTotalPrice(0);
         });
     }
   }, [hovered, role]);
@@ -192,6 +225,9 @@ const Navbar: React.FC = () => {
       localStorage.clear();
       setRole('guest');
       setCurrentMoney(null);
+      setCartItems([]);
+      setTotalPrice(0);
+      setRestaurantName('');
       window.location.href = '/login';
     }
   };
@@ -251,33 +287,55 @@ const Navbar: React.FC = () => {
             >
               <Link to="/customer/review-cart" className={linkClass()}>
                 Sepetim
-                <span
-                  className="absolute bottom-0 right-0 text-xs text-red-700 font-medium"
-                  style={{ marginBottom: '-10px', marginRight: '-10px' }}
-                >
-                  {totalPrice.toFixed(2)} ₺
-                </span>
+                {role === 'customer' && (
+                  <span
+                    className="absolute bottom-0 right-0 text-xs text-red-700 font-medium"
+                    style={{ marginBottom: '-10px', marginRight: '-10px' }}
+                  >
+                    {totalPrice.toFixed(2)} ₺
+                  </span>
+                )}
               </Link>
               {hovered === 'cart' && (
                 <div
-                  className="absolute right-0 mt-2 w-56 bg-white border border-orange-200 shadow-lg rounded-md z-50 px-4 py-4"
+                  className="absolute right-0 mt-2 w-80 bg-white border border-orange-200 shadow-lg rounded-md z-50 px-4 py-4"
                   onMouseEnter={() => handleMouseEnter('cart')}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <h3 className="font-semibold">Sepetim</h3>
+                  <h3 className="font-semibold text-red-700 mb-2">Sepetim</h3>
                   {cartItems.length > 0 ? (
-                    cartItems.map(item => (
-                      <div
-                        key={item.menu.pk}
-                        className="flex justify-between py-2"
-                      >
-                        <span className="text-sm">{item.menu.name}</span>
-                        <span className="text-sm text-red-700">
-                          {item.quantity} x {item.menu.price} ={' '}
-                          {(item.menu.path * item.quantity).toFixed(2)} ₺
-                        </span>
+                    <>
+                      <p className="text-sm text-amber-800 mb-2">Restoran: {restaurantName}</p>
+                      {cartItems.map(item => (
+                        <div
+                          key={item.menu.pk}
+                          className="flex justify-between items-center py-2 border-b border-orange-100"
+                        >
+                          <div className="flex-1">
+                            <span className="text-sm text-amber-800">
+                              x{item.quantity} {item.menu.name}
+                            </span>
+                          </div>
+                          <div className="text-sm text-red-700 text-right">
+                            <span>{item.menu.price.toFixed(2)} ₺ x {item.quantity}</span>
+                            <br />
+                            <span className="font-semibold">
+                              {(item.menu.price * item.quantity).toFixed(2)} ₺
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center mt-3">
+                        <span className="text-sm font-semibold text-amber-800">Toplam:</span>
+                        <span className="text-sm font-bold text-red-700">{totalPrice.toFixed(2)} ₺</span>
                       </div>
-                    ))
+                      <Link
+                        to="/customer/review-cart"
+                        className="block mt-3 px-4 py-2 bg-amber-800 text-white text-center rounded hover:bg-amber-900 transition"
+                      >
+                        Sepete Git
+                      </Link>
+                    </>
                   ) : (
                     <p className="text-sm text-red-700">Sepetiniz boş.</p>
                   )}
@@ -302,13 +360,11 @@ const Navbar: React.FC = () => {
                   onMouseEnter={() => handleMouseEnter('user')}
                   onMouseLeave={handleMouseLeave}
                 >
-                  {/* Display current money for customer role */}
                   {role === 'customer' && (
                     <div className="px-6 py-3 text-sm text-red-700">
                       Bakiye: {currentMoney !== null ? `${currentMoney.toFixed(2)} ₺` : 'Yükleniyor...'}
                     </div>
                   )}
-                  {/* Account links */}
                   {['customer', 'restaurant', 'courier', 'admin'].map(r =>
                     role === r ? (
                       <Link
@@ -320,7 +376,6 @@ const Navbar: React.FC = () => {
                       </Link>
                     ) : null
                   )}
-                  {/* Logout */}
                   <button onClick={handleLogout} className={subLinkClass}>
                     Çıkış Yap
                   </button>
