@@ -154,6 +154,8 @@ const Navbar: React.FC = () => {
   const [userName, setUserName] = useState<string>('');
   const [currentMoney, setCurrentMoney] = useState<number | null>(null);
   const [courierStatus, setCourierStatus] = useState<boolean | null>(null);
+  const [rating, setRating] = useState<number | null>(null); // New state for rating
+  const [ratingCount, setRatingCount] = useState<number | null>(null); // New state for rating count
   const hideTimeout = useRef<number | null>(null);
 
   const linkClass = (active: boolean = false) =>
@@ -179,7 +181,7 @@ const Navbar: React.FC = () => {
     }, 200);
   };
 
-  // Fetch role, username, and courier status
+  // Fetch role, username, courier status, and ratings
   useEffect(() => {
     const savedRole = localStorage.getItem('role');
     const newRole = savedRole ? mapFromRoleToRoute(savedRole) : 'guest';
@@ -211,9 +213,54 @@ const Navbar: React.FC = () => {
             setCourierStatus(null);
             toast.error('Kurye durumu yüklenemedi');
           });
+
+        // Fetch courier rating
+        axios
+          .get('http://localhost:8080/api/couriers/get-review-puan', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then(res => {
+            if (res.data.code === 200 && res.data.data) {
+              setRating(res.data.data.rating);
+              setRatingCount(res.data.data.ratingCount);
+            } else {
+              throw new Error('Invalid rating response');
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching courier rating:', err);
+            setRating(null);
+            setRatingCount(null);
+            toast.error('Kurye puanı yüklenemedi');
+          });
+      }
+    } else if (newRole === 'restaurant') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Fetch restaurant rating
+        axios
+          .get('http://localhost:8080/api/restaurant/get-review-puan', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then(res => {
+            if (res.data.code === 200 && res.data.data) {
+              setRating(res.data.data.rating);
+              setRatingCount(res.data.data.ratingCount);
+            } else {
+              throw new Error('Invalid rating response');
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching restaurant rating:', err);
+            setRating(null);
+            setRatingCount(null);
+            toast.error('Restoran puanı yüklenemedi');
+          });
       }
     } else {
       setCourierStatus(null);
+      setRating(null);
+      setRatingCount(null);
     }
   }, [location]);
 
@@ -330,6 +377,8 @@ const Navbar: React.FC = () => {
       setTotalPrice(0);
       setRestaurantName('');
       setCourierStatus(null);
+      setRating(null);
+      setRatingCount(null);
       window.location.href = '/login';
     }
   };
@@ -465,6 +514,14 @@ const Navbar: React.FC = () => {
                   {role === 'customer' && (
                     <div className="px-6 py-3 text-sm text-red-700">
                       Bakiye: {currentMoney !== null ? `${currentMoney.toFixed(2)} ₺` : 'Yükleniyor...'}
+                    </div>
+                  )}
+                  {(role === 'courier' || role === 'restaurant') && (
+                    <div className="px-6 py-3 text-sm text-red-700">
+                      Puan:{' '}
+                      {rating !== null && ratingCount !== null
+                        ? `${rating.toFixed(1)} (${ratingCount} değerlendirme)`
+                        : 'Yükleniyor...'}
                     </div>
                   )}
                   {role === 'courier' && (
