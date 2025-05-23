@@ -89,14 +89,14 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       <div className="px-4 pb-4 pt-3 border-t border-orange-100 flex flex-wrap gap-2">
         <button
           onClick={() => onManage(restaurant)}
-          className="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors min-w-[80px]"
+          className="flex-1 px-3 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors min-w-[80px]"
         >
           Manage
         </button>
         <button
           onClick={handleBanToggle}
           className={`flex-1 px-3 py-2 text-white text-sm rounded-md transition-colors min-w-[70px] ${
-            isBanned ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600'
+            isBanned ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600 text-orange-900'
           }`}
         >
           {isBanned ? 'Unban' : 'Ban'}

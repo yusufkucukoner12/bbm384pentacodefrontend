@@ -79,7 +79,7 @@ export default function ReviewPage() {
   }, [searchQuery, reviews]);
 
   // Delete a review with confirmation
-  const handleDelete = async (pk: number, review: Review) => {
+  const handleDelete = async (pk: number) => {
     if (!pk || isNaN(pk)) {
       console.error('Invalid review pk in handleDelete:', pk);
       toast.error('Invalid review ID.');
@@ -87,46 +87,17 @@ export default function ReviewPage() {
     }
     if (window.confirm('Are you sure you want to delete this review?')) {
       try {
-        let response;
-        if (review.restaurant == null) {
-          // Courier review deletion
-          console.log('Deleting courier review with pk:', pk);
-          response = await axios.post(
-            'http://localhost:8080/api/couriers/delete-review',
-            {},
-            {
-              headers: { Authorization: `Bearer ${token}` },
-              params: { reviewPk: pk },
-            }
-          );
-        } else if (review.courier == null) {
-          // Restaurant review deletion
-          console.log('Deleting restaurant review with pk:', pk);
-          response = await axios.delete(
-            `http://localhost:8080/api/order/delete-review/${pk}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-        } else {
-          throw new Error('Invalid review: both restaurant and courier are defined or undefined.');
-        }
-        if (response.status === 200) {
-          setReviews((prev) => {
-            const newReviews = prev.filter((r) => r.pk !== pk);
-            console.log('Updated reviews after delete:', newReviews);
-            return newReviews;
-          });
-          setFilteredReviews((prev) => {
-            const newFiltered = prev.filter((r) => r.pk !== pk);
-            console.log('Updated filteredReviews after delete:', newFiltered);
-            return newFiltered;
-          });
-          // Adjust currentPage if the current page is empty
-          const newTotalPages = Math.ceil(filteredReviews.length - 1 / itemsPerPage);
-          if (currentPage > newTotalPages && newTotalPages > 0) {
-            setCurrentPage(newTotalPages);
+        const response = await axios.post(
+          'http://localhost:8080/api/delete-review',
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { reviewPk: pk },
           }
+        );
+        if (response.status === 200) {
+          setReviews((prev) => prev.filter((review) => review.pk !== pk));
+          setFilteredReviews((prev) => prev.filter((review) => review.pk !== pk));
           toast.success('Review deleted successfully.');
         }
       } catch (err: any) {
@@ -147,62 +118,33 @@ export default function ReviewPage() {
     }
     try {
       console.log('Updating review with pk:', editingReview.pk, editingReview);
-      let response;
-      const reviewDTO = {
-        reviewText: editingReview.reviewText,
-        rating: editingReview.rating,
-        pk: editingReview.pk,
-      };
-      if (editingReview.restaurant == null) {
-        // Courier review update
-        console.log('Updating courier review with pk:', editingReview.pk);
-        response = await axios.post(
-          'http://localhost:8080/api/couriers/update-review',
-          reviewDTO,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            params: { reviewPk: editingReview.pk },
-          }
-        );
-      } else if (editingReview.courier == null) {
-        // Restaurant review update
-        console.log('Updating restaurant review with pk:', editingReview.pk);
-        response = await axios.put(
-          `http://localhost:8080/api/order/update-review/${editingReview.pk}`,
-          reviewDTO,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-      } else {
-        throw new Error('Invalid review: both restaurant and courier are defined or undefined.');
-      }
-      const updatedReview: Review = response.data.data ?? {
-        pk: editingReview.pk,
-        reviewText: editingReview.reviewText,
-        rating: editingReview.rating,
-        restaurant: editingReview.restaurant,
-        courier: editingReview.courier,
-      };
+      const response = await axios.post(
+        'http://localhost:8080/api/update-review',
+        {
+          reviewText: editingReview.reviewText,
+          rating: editingReview.rating,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { reviewPk: editingReview.pk },
+        }
+      );
+      const updatedReview: Review = response.data.data;
       if (!updatedReview.pk || isNaN(updatedReview.pk)) {
         console.error('Invalid pk in updated review response:', updatedReview);
         throw new Error('Invalid review ID in response.');
       }
       console.log('Updated review response:', updatedReview);
-      setReviews((prev) => {
-        const newReviews = prev.map((review) =>
+      setReviews((prev) =>
+        prev.map((review) =>
           review.pk === editingReview.pk ? { ...updatedReview } : review
-        );
-        console.log('Updated reviews after update:', newReviews);
-        return newReviews;
-      });
-      setFilteredReviews((prev) => {
-        const newFiltered = prev.map((review) =>
+        )
+      );
+      setFilteredReviews((prev) =>
+        prev.map((review) =>
           review.pk === editingReview.pk ? { ...updatedReview } : review
-        );
-        console.log('Updated filteredReviews after update:', newFiltered);
-        return newFiltered;
-      });
+        )
+      );
       setEditingReview(null);
       setIsModalOpen(false);
       toast.success('Review updated successfully.');
@@ -350,7 +292,7 @@ export default function ReviewPage() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(review.pk, review)}
+                            onClick={() => handleDelete(review.pk)}
                             className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                           >
                             Delete

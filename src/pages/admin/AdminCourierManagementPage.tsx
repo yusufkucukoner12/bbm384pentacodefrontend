@@ -261,13 +261,13 @@ export default function AdminCourierManagementPage() {
   });
 
   return (
-    <div className="min-h-screen bg-green-50 p-4 md:p-8"> {/* Changed bg color for differentiation */}
+    <div className="min-h-screen bg-yellow-50 p-4 md:p-8"> {/* Changed bg color for consistency */}
       <ToastContainer position="bottom-right" autoClose={4000} theme="colored" newestOnTop />
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold text-green-700 mb-8">Courier Management</h1>
+        <h1 className="text-3xl font-bold text-orange-700 mb-8">Courier Management</h1>
 
         <div className="mb-10 bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-semibold text-green-800 mb-6">Add New Courier</h2>
+          <h2 className="text-2xl font-semibold text-orange-800 mb-6">Add New Courier</h2>
           {modalFormError && <p className="text-red-500 bg-red-100 p-3 rounded-md mb-4 text-sm">{modalFormError}</p>}
           <form onSubmit={handleCreateCourier} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -278,7 +278,7 @@ export default function AdminCourierManagementPage() {
                   </label>
                   <input
                     id={`new-courier-${name}`} type={type} name={name} required={required}
-                    className="mt-1 p-2 w-full border border-green-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                    className="mt-1 p-2 w-full border border-orange-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
                     value={newCourierData[name]} onChange={handleNewCourierInputChange}
                   />
                 </div>
@@ -286,7 +286,7 @@ export default function AdminCourierManagementPage() {
             </div>
             <button
               type="submit"
-              className="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors"
+              className="mt-4 px-6 py-2 bg-orange-500 text-white font-semibold rounded-md hover:bg-orange-600 transition-colors"
             >
               Add Courier
             </button>
@@ -297,18 +297,18 @@ export default function AdminCourierManagementPage() {
           <input
             type="text"
             placeholder="Search couriers by name, email, username, or phone..."
-            className="w-full px-4 py-3 border border-green-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full px-4 py-3 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {loading ? (
-          <div className="text-center py-10"><p className="text-green-600 text-xl">Loading couriers...</p></div>
+          <div className="text-center py-10"><p className="text-orange-600 text-xl">Loading couriers...</p></div>
         ) : pageError && couriers.length === 0 ? (
           <div className="text-center py-10 bg-red-100 text-red-700 p-4 rounded-lg">
             <p>{pageError}</p>
-            <button onClick={fetchCouriers} className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+            <button onClick={fetchCouriers} className="mt-2 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
                 Try Again
             </button>
           </div>
@@ -336,7 +336,7 @@ export default function AdminCourierManagementPage() {
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={closeManageModal}>
           <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4 border-b pb-3">
-              <h2 className="text-2xl font-semibold text-green-800">
+              <h2 className="text-2xl font-semibold text-orange-800">
                 {isEditingInModal ? `Edit: ${selectedCourierForModal.name}` : `Details: ${selectedCourierForModal.name}`}
               </h2>
               <button onClick={closeManageModal} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
@@ -349,7 +349,7 @@ export default function AdminCourierManagementPage() {
                 <>
                     {Object.entries(groupedModalFields).map(([groupName, fields]) => (
                     <div key={groupName} className="mb-5">
-                        <h5 className="text-lg font-semibold text-green-600 mb-2 border-b pb-1">{groupName}</h5>
+                        <h5 className="text-lg font-semibold text-orange-600 mb-2 border-b pb-1">{groupName}</h5>
                         <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         {fields.map(field => {
                             const value = selectedCourierForModal[field.key as keyof CourierDTO];
@@ -358,7 +358,7 @@ export default function AdminCourierManagementPage() {
                                 <dt className="font-medium text-gray-600">{field.label}:</dt>
                                 <dd className="text-gray-800 break-words">
                                 {field.type === 'checkbox' ? (
-                                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${value ? (field.key === 'isOnline' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700') : 'bg-gray-100 text-gray-600'}`}>
+                                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${value ? (field.key === 'isOnline' ? 'bg-yellow-100 text-orange-700' : 'bg-blue-100 text-blue-700') : 'bg-gray-100 text-gray-600'}`}>
                                     {value ? (field.key === 'isOnline' ? 'Online' : 'Available') : (field.key === 'isOnline' ? 'Offline' : 'Unavailable')}
                                     </span>
                                 ) : field.key === 'profilePictureUrl' && value ? (
@@ -375,7 +375,7 @@ export default function AdminCourierManagementPage() {
                     ))}
 
                     <div className="mt-6">
-                        <h5 className="text-lg font-semibold text-green-600 mb-2 border-b pb-1">Recent Orders</h5>
+                        <h5 className="text-lg font-semibold text-orange-600 mb-2 border-b pb-1">Recent Orders</h5>
                         {ordersLoading && <p className="text-gray-500 italic">Loading orders...</p>}
                         {ordersError && <p className="text-red-500 text-sm bg-red-50 p-2 rounded">{ordersError}</p>}
                         {!ordersLoading && !ordersError && courierOrders.length === 0 && (
@@ -414,14 +414,14 @@ export default function AdminCourierManagementPage() {
                     {COURIER_MODAL_FIELDS_CONFIG.filter(f => !f.readonly).map(field => (
                         <div key={field.key} className={field.type === 'checkbox' ? 'md:col-span-2 flex items-center' : ''}>
                         <label htmlFor={`modal-courier-${field.key}`} 
-                               className={`block text-sm font-medium text-green-700 ${field.type === 'checkbox' ? 'mr-3' : 'mb-1'}`}>
+                               className={`block text-sm font-medium text-orange-700 ${field.type === 'checkbox' ? 'mr-3' : 'mb-1'}`}> {/* orange-700 for label */}
                             {field.label} {field.required && <span className="text-red-500">*</span>}
                         </label>
                         <input
                             type={field.type} id={`modal-courier-${field.key}`} name={field.key} required={field.required}
                             className={field.type === 'checkbox' 
-                                ? 'h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500' 
-                                : 'mt-1 block w-full px-3 py-2 border border-green-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm'}
+                                ? 'h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500' 
+                                : 'mt-1 block w-full px-3 py-2 border border-orange-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm'}
                             checked={field.type === 'checkbox' ? (modalEditableData[field.key as keyof CourierDTO] as boolean) : undefined}
                             value={field.type !== 'checkbox' ? (modalEditableData[field.key as keyof CourierDTO] as string | number | undefined) ?? '' : undefined}
                             onChange={handleModalInputChange}
@@ -439,7 +439,7 @@ export default function AdminCourierManagementPage() {
                     </button>
                     <button
                         type="submit"
-                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
+                        className="px-4 py-2 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 transition-colors"
                     >
                         Save Changes
                     </button>
@@ -452,7 +452,7 @@ export default function AdminCourierManagementPage() {
                 <div className="mt-6 flex justify-end pt-4 border-t">
                   <button
                     onClick={() => setIsEditingInModal(true)}
-                    className="px-5 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                    className="px-5 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
                   >
                     Edit Courier Information
                   </button>
